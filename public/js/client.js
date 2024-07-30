@@ -107,7 +107,7 @@ function addMessage(sender, content, isImage = false) {
     messageElement.appendChild(contentElement);
     
     messagesContainer.appendChild(messageElement);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    messagesContainer.scrollIntoView(false);
 }
 
 function updateUsersList(users, host) {
