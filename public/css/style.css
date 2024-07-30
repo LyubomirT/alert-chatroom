@@ -16,7 +16,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #007bff;
+    background-color: #4a6fa5;
     color: white;
     padding: 10px 20px;
 }
@@ -53,22 +53,38 @@ body {
 
 .message {
     max-width: 70%;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     padding: 10px;
     border-radius: 20px;
     word-wrap: break-word;
+    position: relative;
+}
+
+.message .username {
+    position: absolute;
+    top: -20px;
+    font-size: 0.8em;
+    color: #666;
 }
 
 .message.sent {
     align-self: flex-end;
-    background-color: #007bff;
+    background-color: #4a6fa5;
     color: white;
+}
+
+.message.sent .username {
+    right: 10px;
 }
 
 .message.received {
     align-self: flex-start;
     background-color: #e9ecef;
     color: #333;
+}
+
+.message.received .username {
+    left: 10px;
 }
 
 #message-form {
@@ -88,7 +104,7 @@ body {
 
 button {
     padding: 10px 20px;
-    background-color: #007bff;
+    background-color: #4a6fa5;
     color: white;
     border: none;
     border-radius: 5px;
@@ -98,7 +114,7 @@ button {
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #3a5a8c;
 }
 
 #users-list {
@@ -107,5 +123,26 @@ button:hover {
 }
 
 #users-list li {
-    margin-bottom: 5px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.online-indicator {
+    width: 10px;
+    height: 10px;
+    background-color: #28a745;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.kick-button {
+    margin-left: auto;
+    padding: 2px 5px;
+    font-size: 0.8em;
+    background-color: #dc3545;
+}
+
+.kick-button:hover {
+    background-color: #bd2130;
 }
