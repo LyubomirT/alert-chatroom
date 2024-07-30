@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Chatroom</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Chatroom</h1>
+        <div id="chat-container">
+            <div id="messages"></div>
+            <form id="message-form">
+                <input type="text" id="message-input" placeholder="Type your message..." required>
+                <button type="submit">Send</button>
+            </form>
+        </div>
+        <p>Invite link: <span id="invite-link"></span></p>
+    </div>
+    <script>
+        const roomId = "<%= roomId %>";
+    </script>
+    <script src="/js/client.js"></script>
+</body>
+</html>
