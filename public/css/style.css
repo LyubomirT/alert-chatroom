@@ -60,6 +60,11 @@ body {
     position: relative;
 }
 
+.message-content {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
 .message .username {
     position: absolute;
     top: -20px;
@@ -87,12 +92,21 @@ body {
     left: 10px;
 }
 
+.message.system-message {
+    background-color: #fff7cd;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    color: #333;
+}
+
+
 #message-form {
     display: flex;
     padding: 20px;
     background-color: white;
     border-top: 1px solid #dee2e6;
-    align-items: center;
+    align-items: flex-end;
 }
 
 #message-input {
@@ -102,6 +116,10 @@ body {
     border-radius: 5px;
     font-size: 1em;
     margin-right: 10px;
+    resize: none;
+    min-height: 38px;
+    max-height: 200px;
+    overflow-y: auto;
 }
 
 .image-upload-label {

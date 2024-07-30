@@ -10,6 +10,10 @@
     <div class="container">
         <h1>Welcome to Alert Chatroom</h1>
         <form action="/create-room" method="POST">
+            <div>
+                <input type="checkbox" id="showPastMessages" name="showPastMessages">
+                <label for="showPastMessages">Allow new users to see past messages</label>
+            </div>
             <button type="submit">Create New Chatroom</button>
         </form>
     </div>

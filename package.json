@@ -4,12 +4,13 @@
     "description": "Peer-to-peer chatroom application",
     "main": "server.js",
     "scripts": {
-      "start": "node server.js"
+        "start": "node server.js"
     },
     "dependencies": {
-      "express": "^4.17.1",
-      "ejs": "^3.1.6",
-      "ws": "^8.2.3",
-      "uuid": "^8.3.2"
+        "cookie-parser": "^1.4.6",
+        "ejs": "^3.1.6",
+        "express": "^4.17.1",
+        "uuid": "^8.3.2",
+        "ws": "^8.2.3"
     }
-  }
+}

@@ -13,6 +13,7 @@ const chatrooms = new Map();
 app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 app.get('/', (req, res) => {
   res.render('index');
@@ -23,7 +24,11 @@ app.post('/create-room', (req, res) => {
   chatrooms.set(roomId, { 
     users: new Map(),
     host: null,
-    name: 'Alert Chatroom'
+    hostUsername: null,
+    name: 'Alert Chatroom',
+    showPastMessages: req.body.showPastMessages === 'on',
+    messages: [],
+    hostTimeout: null
   });
   res.redirect(`/room/${roomId}`);
 });
@@ -54,8 +59,12 @@ wss.on('connection', (ws, req) => {
           room.users.set(ws, username);
           
           if (!room.host) {
-            room.host = ws;
-            ws.send(JSON.stringify({ type: 'host' }));
+            setNewHost(room, ws, username);
+          } else if (username === room.hostUsername && room.hostTimeout) {
+            // If the joining user has the same name as the previous host
+            clearTimeout(room.hostTimeout);
+            room.hostTimeout = null;
+            setNewHost(room, ws, username);
           }
 
           broadcastToRoom(roomId, {
@@ -65,16 +74,24 @@ wss.on('connection', (ws, req) => {
           });
           updateUsersList(roomId);
           ws.send(JSON.stringify({ type: 'roomName', name: room.name }));
+
+          if (room.showPastMessages) {
+            room.messages.forEach(msg => {
+              ws.send(JSON.stringify(msg));
+            });
+          }
         }
         break;
 
       case 'message':
-        broadcastToRoom(roomId, {
+        const messageData = {
           type: 'message',
           content: data.content,
           sender: username,
           isImage: data.isImage || false
-        });
+        };
+        chatrooms.get(roomId).messages.push(messageData);
+        broadcastToRoom(roomId, messageData);
         break;
 
       case 'roomName':
@@ -98,34 +115,58 @@ wss.on('connection', (ws, req) => {
           }
         }
         break;
+
+      case 'leave':
+        handleUserLeave(ws, roomId, username);
+        break;
     }
   });
 
   ws.on('close', () => {
-    if (roomId && chatrooms.has(roomId)) {
-      const room = chatrooms.get(roomId);
-      room.users.delete(ws);
+    handleUserLeave(ws, roomId, username);
+  });
+});
 
-      if (room.host === ws) {
-        room.host = room.users.keys().next().value;
-        if (room.host) {
-          room.host.send(JSON.stringify({ type: 'host' }));
+function setNewHost(room, ws, username) {
+  room.host = ws;
+  room.hostUsername = username;
+  ws.send(JSON.stringify({ type: 'host' }));
+}
+
+function handleUserLeave(ws, roomId, username) {
+  if (roomId && chatrooms.has(roomId)) {
+    const room = chatrooms.get(roomId);
+    room.users.delete(ws);
+
+    if (room.host === ws) {
+      room.host = null;
+      room.hostTimeout = setTimeout(() => {
+        if (room.users.size > 0) {
+          broadcastToRoom(roomId, {
+            type: 'message',
+            content: 'The host has left and no one took over. This room will be closed.',
+            sender: 'System'
+          });
+          room.users.forEach((_, userWs) => {
+            userWs.close();
+          });
         }
-      }
+        chatrooms.delete(roomId);
+      }, 120000); // 2 minutes
+    }
 
+    if (room.users.size > 0) {
       broadcastToRoom(roomId, {
         type: 'message',
         content: `${username} has left the chat`,
         sender: 'System'
       });
       updateUsersList(roomId);
-
-      if (room.users.size === 0) {
-        chatrooms.delete(roomId);
-      }
+    } else {
+      chatrooms.delete(roomId);
     }
-  });
-});
+  }
+}
 
 function broadcastToRoom(roomId, message) {
   if (chatrooms.has(roomId)) {

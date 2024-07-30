@@ -70,13 +70,21 @@ function addMessage(sender, content, isImage = false) {
     usernameElement.classList.add('username');
     usernameElement.textContent = sender;
     
+    if (sender === 'System') {
+        messageElement.classList.add('system-message');
+    }
+    
     const contentElement = document.createElement('div');
+    contentElement.classList.add('message-content');
+    
     if (isImage) {
         const img = document.createElement('img');
         img.src = content;
         contentElement.appendChild(img);
     } else {
-        contentElement.textContent = content;
+        // Replace newline characters with <br> tags
+        const formattedContent = content.replace(/\n/g, '<br>');
+        contentElement.innerHTML = formattedContent;
     }
     
     messageElement.appendChild(usernameElement);
@@ -88,12 +96,24 @@ function addMessage(sender, content, isImage = false) {
 
 function updateUsersList(users) {
     usersList.innerHTML = '';
+    
     users.forEach(user => {
         const li = document.createElement('li');
         const indicator = document.createElement('span');
         indicator.classList.add('online-indicator');
         li.appendChild(indicator);
         li.appendChild(document.createTextNode(user));
+
+        // get the host to show a crown next to their name (everyone can see it, other users don't get a crown
+        // send getHost message to server
+        
+
+        if (user === host_) {
+            const crown = document.createElement('i');
+            crown.classList.add('fas', 'fa-crown');
+            crown.style.color = 'gold';
+            li.appendChild(crown);
+        }
         
         if (isHost && user !== username) {
             const kickBtn = document.createElement('button');
@@ -161,6 +181,20 @@ function getLocalIPs(callback) {
       .catch(err => console.error(err));
 }
 
+function resizeTextarea() {
+    messageInput.style.height = 'auto';
+    messageInput.style.height = (messageInput.scrollHeight) + 'px';
+}
+
+messageInput.addEventListener('input', resizeTextarea);
+
+messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        messageForm.dispatchEvent(new Event('submit'));
+    }
+});
+
 messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = messageInput.value.trim();
@@ -170,6 +204,7 @@ messageForm.addEventListener('submit', (e) => {
             content: message
         }));
         messageInput.value = '';
+        resizeTextarea();
     }
 });
 
@@ -189,6 +224,11 @@ imageUpload.addEventListener('change', (e) => {
 });
 
 leaveBtn.addEventListener('click', () => {
+    ws.send(JSON.stringify({
+        type: 'leave',
+        roomId: roomId,
+        username: username
+    }));
     ws.close();
     window.location.href = '/';
 });
