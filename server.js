@@ -56,12 +56,21 @@ wss.on('connection', (ws, req) => {
 
         if (chatrooms.has(roomId)) {
           const room = chatrooms.get(roomId);
+          
+          // Check if username already exists
+          if (Array.from(room.users.values()).includes(username)) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'Username already taken'
+            }));
+            return;
+          }
+          
           room.users.set(ws, username);
           
           if (!room.host) {
             setNewHost(room, ws, username);
           } else if (username === room.hostUsername && room.hostTimeout) {
-            // If the joining user has the same name as the previous host
             clearTimeout(room.hostTimeout);
             room.hostTimeout = null;
             setNewHost(room, ws, username);
@@ -73,7 +82,11 @@ wss.on('connection', (ws, req) => {
             sender: 'System'
           });
           updateUsersList(roomId);
-          ws.send(JSON.stringify({ type: 'roomName', name: room.name }));
+          ws.send(JSON.stringify({ 
+            type: 'roomName', 
+            name: room.name,
+            host: room.hostUsername
+          }));
 
           if (room.showPastMessages) {
             room.messages.forEach(msg => {
@@ -99,7 +112,8 @@ wss.on('connection', (ws, req) => {
           chatrooms.get(roomId).name = data.name;
           broadcastToRoom(roomId, {
             type: 'roomName',
-            name: data.name
+            name: data.name,
+            host: chatrooms.get(roomId).hostUsername
           });
         }
         break;
@@ -131,6 +145,10 @@ function setNewHost(room, ws, username) {
   room.host = ws;
   room.hostUsername = username;
   ws.send(JSON.stringify({ type: 'host' }));
+  broadcastToRoom(room, {
+    type: 'newHost',
+    host: username
+  });
 }
 
 function handleUserLeave(ws, roomId, username) {
@@ -142,16 +160,16 @@ function handleUserLeave(ws, roomId, username) {
       room.host = null;
       room.hostTimeout = setTimeout(() => {
         if (room.users.size > 0) {
+          const [newHost, newHostUsername] = room.users.entries().next().value;
+          setNewHost(room, newHost, newHostUsername);
           broadcastToRoom(roomId, {
             type: 'message',
-            content: 'The host has left and no one took over. This room will be closed.',
+            content: `${newHostUsername} is now the host.`,
             sender: 'System'
           });
-          room.users.forEach((_, userWs) => {
-            userWs.close();
-          });
+        } else {
+          chatrooms.delete(roomId);
         }
-        chatrooms.delete(roomId);
       }, 120000); // 2 minutes
     }
 
@@ -180,10 +198,12 @@ function broadcastToRoom(roomId, message) {
 
 function updateUsersList(roomId) {
   if (chatrooms.has(roomId)) {
-    const users = Array.from(chatrooms.get(roomId).users.values());
+    const room = chatrooms.get(roomId);
+    const users = Array.from(room.users.values());
     broadcastToRoom(roomId, {
       type: 'userList',
-      users: users
+      users: users,
+      host: room.hostUsername
     });
   }
 }

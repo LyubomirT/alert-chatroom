@@ -12,8 +12,13 @@ const imageUpload = document.getElementById('image-upload');
 let username;
 let ws;
 let isHost = false;
+let currentHost;
 
 function init() {
+    connectWithUsername();
+}
+
+function connectWithUsername() {
     username = prompt('Enter your username:');
     if (!username) {
         alert('Username is required');
@@ -40,10 +45,11 @@ function init() {
                 addMessage(data.sender, data.content, data.isImage);
                 break;
             case 'userList':
-                updateUsersList(data.users);
+                updateUsersList(data.users, data.host);
                 break;
             case 'roomName':
                 updateRoomName(data.name);
+                currentHost = data.host;
                 break;
             case 'host':
                 isHost = true;
@@ -52,6 +58,16 @@ function init() {
             case 'kicked':
                 alert('You have been kicked from the room.');
                 window.location.href = '/';
+                break;
+            case 'error':
+                if (data.message === 'Username already taken') {
+                    alert('Username already taken. Please choose a different username.');
+                    connectWithUsername();
+                }
+                break;
+            case 'newHost':
+                currentHost = data.host;
+                updateUsersList(null, data.host);
                 break;
         }
     };
@@ -94,37 +110,53 @@ function addMessage(sender, content, isImage = false) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
 
-function updateUsersList(users) {
-    usersList.innerHTML = '';
-    
-    users.forEach(user => {
-        const li = document.createElement('li');
-        const indicator = document.createElement('span');
-        indicator.classList.add('online-indicator');
-        li.appendChild(indicator);
-        li.appendChild(document.createTextNode(user));
+function updateUsersList(users, host) {
+    if (users) {
+        usersList.innerHTML = '';
+        users.forEach(user => {
+            const li = document.createElement('li');
+            const indicator = document.createElement('span');
+            indicator.classList.add('online-indicator');
+            li.appendChild(indicator);
+            li.appendChild(document.createTextNode(user));
 
-        // get the host to show a crown next to their name (everyone can see it, other users don't get a crown
-        // send getHost message to server
-        
-
-        if (user === host_) {
-            const crown = document.createElement('i');
-            crown.classList.add('fas', 'fa-crown');
-            crown.style.color = 'gold';
-            li.appendChild(crown);
+            if (user === host) {
+                const crown = document.createElement('i');
+                crown.classList.add('fas', 'fa-crown');
+                crown.style.color = 'gold';
+                crown.style.marginLeft = '5px';
+                li.appendChild(crown);
+            }
+            
+            if (isHost && user !== username) {
+                const kickBtn = document.createElement('button');
+                kickBtn.classList.add('kick-button');
+                kickBtn.innerHTML = '<i class="fas fa-user-times"></i>';
+                kickBtn.onclick = () => kickUser(user);
+                li.appendChild(kickBtn);
+            }
+            
+            usersList.appendChild(li);
+        });
+    } else if (host) {
+        // Update only the host crown
+        const userItems = usersList.getElementsByTagName('li');
+        for (let item of userItems) {
+            const userName = item.textContent;
+            const existingCrown = item.querySelector('.fa-crown');
+            if (userName === host) {
+                if (!existingCrown) {
+                    const crown = document.createElement('i');
+                    crown.classList.add('fas', 'fa-crown');
+                    crown.style.color = 'gold';
+                    crown.style.marginLeft = '5px';
+                    item.appendChild(crown);
+                }
+            } else if (existingCrown) {
+                item.removeChild(existingCrown);
+            }
         }
-        
-        if (isHost && user !== username) {
-            const kickBtn = document.createElement('button');
-            kickBtn.classList.add('kick-button');
-            kickBtn.innerHTML = '<i class="fas fa-user-times"></i>';
-            kickBtn.onclick = () => kickUser(user);
-            li.appendChild(kickBtn);
-        }
-        
-        usersList.appendChild(li);
-    });
+    }
 }
 
 function updateRoomName(name) {
