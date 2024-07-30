@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
 
 app.post('/create-room', (req, res) => {
   const roomId = uuidv4();
-  chatrooms.set(roomId, { users: new Set() });
+  chatrooms.set(roomId, { users: new Map() });
   res.redirect(`/room/${roomId}`);
 });
 
@@ -45,12 +45,13 @@ wss.on('connection', (ws, req) => {
       username = data.username;
 
       if (chatrooms.has(roomId)) {
-        chatrooms.get(roomId).users.add(ws);
+        chatrooms.get(roomId).users.set(ws, username);
         broadcastToRoom(roomId, {
           type: 'message',
           content: `${username} has joined the chat`,
           sender: 'System'
         });
+        updateUsersList(roomId);
       }
     } else if (data.type === 'message') {
       broadcastToRoom(roomId, {
@@ -69,16 +70,27 @@ wss.on('connection', (ws, req) => {
         content: `${username} has left the chat`,
         sender: 'System'
       });
+      updateUsersList(roomId);
     }
   });
 });
 
 function broadcastToRoom(roomId, message) {
   if (chatrooms.has(roomId)) {
-    chatrooms.get(roomId).users.forEach((client) => {
+    chatrooms.get(roomId).users.forEach((username, client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(JSON.stringify(message));
       }
+    });
+  }
+}
+
+function updateUsersList(roomId) {
+  if (chatrooms.has(roomId)) {
+    const users = Array.from(chatrooms.get(roomId).users.values());
+    broadcastToRoom(roomId, {
+      type: 'userList',
+      users: users
     });
   }
 }

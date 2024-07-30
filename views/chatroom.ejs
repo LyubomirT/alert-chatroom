@@ -4,19 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alert Chatroom</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Chatroom</h1>
-        <div id="chat-container">
-            <div id="messages"></div>
-            <form id="message-form">
-                <input type="text" id="message-input" placeholder="Type your message..." required>
-                <button type="submit">Send</button>
-            </form>
+    <div class="chat-container">
+        <div class="titlebar">
+            <h1>Alert Chatroom</h1>
+            <button id="leave-btn">Leave</button>
         </div>
-        <p>Invite link: <span id="invite-link"></span></p>
+        <div class="chat-main">
+            <div class="messages-container">
+                <div id="messages"></div>
+            </div>
+            <div class="sidebar">
+                <h2>Room Info</h2>
+                <p>Invite link: <span id="invite-link"></span></p>
+                <h3>Online Users</h3>
+                <ul id="users-list"></ul>
+            </div>
+        </div>
+        <form id="message-form">
+            <input type="text" id="message-input" placeholder="Type your message..." required>
+            <button type="submit">Send</button>
+        </form>
     </div>
     <script>
         const roomId = "<%= roomId %>";

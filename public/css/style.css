@@ -1,52 +1,111 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Roboto', sans-serif;
     margin: 0;
     padding: 0;
+    height: 100vh;
     background-color: #f0f0f0;
 }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.titlebar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+}
+
+.titlebar h1 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.chat-main {
+    display: flex;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.messages-container {
+    flex-grow: 1;
+    overflow-y: auto;
     padding: 20px;
-}
-
-h1 {
-    text-align: center;
-}
-
-#chat-container {
     background-color: white;
-    border-radius: 5px;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
     padding: 20px;
-    margin-bottom: 20px;
+    overflow-y: auto;
 }
 
 #messages {
-    height: 300px;
-    overflow-y: auto;
-    border: 1px solid #ccc;
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.message {
+    max-width: 70%;
     margin-bottom: 10px;
+    padding: 10px;
+    border-radius: 20px;
+    word-wrap: break-word;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+}
+
+.message.received {
+    align-self: flex-start;
+    background-color: #e9ecef;
+    color: #333;
 }
 
 #message-form {
     display: flex;
+    padding: 20px;
+    background-color: white;
+    border-top: 1px solid #dee2e6;
 }
 
 #message-input {
     flex-grow: 1;
-    padding: 5px;
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 1em;
 }
 
 button {
-    padding: 5px 10px;
+    padding: 10px 20px;
     background-color: #007bff;
     color: white;
     border: none;
+    border-radius: 5px;
     cursor: pointer;
+    font-size: 1em;
+    margin-left: 10px;
 }
 
 button:hover {
     background-color: #0056b3;
+}
+
+#users-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#users-list li {
+    margin-bottom: 5px;
 }

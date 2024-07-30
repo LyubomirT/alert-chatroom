@@ -2,6 +2,8 @@ const messagesContainer = document.getElementById('messages');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const inviteLink = document.getElementById('invite-link');
+const leaveBtn = document.getElementById('leave-btn');
+const usersList = document.getElementById('users-list');
 
 let username;
 let ws;
@@ -30,6 +32,8 @@ function init() {
         const data = JSON.parse(event.data);
         if (data.type === 'message') {
             addMessage(data.sender, data.content);
+        } else if (data.type === 'userList') {
+            updateUsersList(data.users);
         }
     };
 
@@ -40,9 +44,20 @@ function init() {
 
 function addMessage(sender, content) {
     const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.classList.add(sender === username ? 'sent' : 'received');
     messageElement.textContent = `${sender}: ${content}`;
     messagesContainer.appendChild(messageElement);
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function updateUsersList(users) {
+    usersList.innerHTML = '';
+    users.forEach(user => {
+        const li = document.createElement('li');
+        li.textContent = user;
+        usersList.appendChild(li);
+    });
 }
 
 messageForm.addEventListener('submit', (e) => {
@@ -55,6 +70,11 @@ messageForm.addEventListener('submit', (e) => {
         }));
         messageInput.value = '';
     }
+});
+
+leaveBtn.addEventListener('click', () => {
+    ws.close();
+    window.location.href = '/';
 });
 
 init();
