@@ -28,7 +28,8 @@ app.post('/create-room', (req, res) => {
     name: 'Alert Chatroom',
     showPastMessages: req.body.showPastMessages === 'on',
     messages: [],
-    hostTimeout: null
+    hostTimeout: null,
+    deletionTimeout: null
   });
   res.redirect(`/room/${roomId}`);
 });
@@ -57,6 +58,12 @@ wss.on('connection', (ws, req) => {
         if (chatrooms.has(roomId)) {
           const room = chatrooms.get(roomId);
           
+          // Clear deletion timeout if it exists
+          if (room.deletionTimeout) {
+            clearTimeout(room.deletionTimeout);
+            room.deletionTimeout = null;
+          }
+
           // Check if username already exists
           if (Array.from(room.users.values()).includes(username)) {
             ws.send(JSON.stringify({
@@ -93,22 +100,34 @@ wss.on('connection', (ws, req) => {
               ws.send(JSON.stringify(msg));
             });
           }
+        } else {
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Room not found'
+          }));
         }
         break;
 
       case 'message':
-        const messageData = {
-          type: 'message',
-          content: data.content,
-          sender: username,
-          isImage: data.isImage || false
-        };
-        chatrooms.get(roomId).messages.push(messageData);
-        broadcastToRoom(roomId, messageData);
+        if (chatrooms.has(roomId)) {
+          const messageData = {
+            type: 'message',
+            content: data.content,
+            sender: username,
+            isImage: data.isImage || false
+          };
+          chatrooms.get(roomId).messages.push(messageData);
+          broadcastToRoom(roomId, messageData);
+        } else {
+          ws.send(JSON.stringify({
+            type: 'error',
+            message: 'Room not found'
+          }));
+        }
         break;
 
       case 'roomName':
-        if (chatrooms.get(roomId).host === ws) {
+        if (chatrooms.has(roomId) && chatrooms.get(roomId).host === ws) {
           chatrooms.get(roomId).name = data.name;
           broadcastToRoom(roomId, {
             type: 'roomName',
@@ -119,7 +138,7 @@ wss.on('connection', (ws, req) => {
         break;
 
       case 'kick':
-        if (chatrooms.get(roomId).host === ws) {
+        if (chatrooms.has(roomId) && chatrooms.get(roomId).host === ws) {
           const userToKick = Array.from(chatrooms.get(roomId).users.entries())
             .find(([_, name]) => name === data.username);
           
@@ -167,8 +186,6 @@ function handleUserLeave(ws, roomId, username) {
             content: `${newHostUsername} is now the host.`,
             sender: 'System'
           });
-        } else {
-          chatrooms.delete(roomId);
         }
       }, 120000); // 2 minutes
     }
@@ -181,7 +198,10 @@ function handleUserLeave(ws, roomId, username) {
       });
       updateUsersList(roomId);
     } else {
-      chatrooms.delete(roomId);
+      // Set a deletion timeout instead of immediately deleting the room
+      room.deletionTimeout = setTimeout(() => {
+        chatrooms.delete(roomId);
+      }, 300000); // 5 minutes
     }
   }
 }
