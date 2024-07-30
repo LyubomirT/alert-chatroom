@@ -2,10 +2,12 @@ const messagesContainer = document.getElementById('messages');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const inviteLink = document.getElementById('invite-link');
+const toggleInviteLinkBtn = document.getElementById('toggle-invite-link');
 const leaveBtn = document.getElementById('leave-btn');
 const usersList = document.getElementById('users-list');
 const roomNameElement = document.getElementById('room-name');
 const editRoomNameBtn = document.getElementById('edit-room-name-btn');
+const imageUpload = document.getElementById('image-upload');
 
 let username;
 let ws;
@@ -19,7 +21,7 @@ function init() {
         return;
     }
 
-    inviteLink.textContent = window.location.href;
+    updateInviteLink('localhost');
 
     ws = new WebSocket(`ws://${window.location.host}`);
 
@@ -35,7 +37,7 @@ function init() {
         const data = JSON.parse(event.data);
         switch (data.type) {
             case 'message':
-                addMessage(data.sender, data.content);
+                addMessage(data.sender, data.content, data.isImage);
                 break;
             case 'userList':
                 updateUsersList(data.users);
@@ -59,7 +61,7 @@ function init() {
     };
 }
 
-function addMessage(sender, content) {
+function addMessage(sender, content, isImage = false) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === username ? 'sent' : 'received');
@@ -69,7 +71,13 @@ function addMessage(sender, content) {
     usernameElement.textContent = sender;
     
     const contentElement = document.createElement('div');
-    contentElement.textContent = content;
+    if (isImage) {
+        const img = document.createElement('img');
+        img.src = content;
+        contentElement.appendChild(img);
+    } else {
+        contentElement.textContent = content;
+    }
     
     messageElement.appendChild(usernameElement);
     messageElement.appendChild(contentElement);
@@ -110,6 +118,49 @@ function kickUser(userToKick) {
     }));
 }
 
+function updateInviteLink(type) {
+    let link;
+    switch (type) {
+        case 'localhost':
+            link = `http://localhost:${location.port}/room/${roomId}`;
+            inviteLink.textContent = link;
+            break;
+        case 'local':
+            getLocalIPs(function(ips) {
+                // Prefer non-link-local IP if available
+                const ip = ips.find(ip => !ip.startsWith('169.254.')) || ips[0];
+                link = `http://${ip}:${location.port}/room/${roomId}`;
+                inviteLink.textContent = link;
+            });
+            return;
+        default:
+            link = window.location.href;
+            inviteLink.textContent = link;
+    }
+}
+
+function getLocalIPs(callback) {
+    const ips = [];
+    const RTCPeerConnection = window.RTCPeerConnection ||
+                              window.webkitRTCPeerConnection ||
+                              window.mozRTCPeerConnection;
+
+    const pc = new RTCPeerConnection({ iceServers: [] });
+    pc.createDataChannel('');
+    pc.onicecandidate = (e) => {
+        if (!e.candidate) {
+            pc.close();
+            callback(ips);
+            return;
+        }
+        const ip = e.candidate.candidate.split(' ')[4];
+        if (ips.indexOf(ip) === -1) ips.push(ip);
+    };
+    pc.createOffer()
+      .then(offer => pc.setLocalDescription(offer))
+      .catch(err => console.error(err));
+}
+
 messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = messageInput.value.trim();
@@ -119,6 +170,21 @@ messageForm.addEventListener('submit', (e) => {
             content: message
         }));
         messageInput.value = '';
+    }
+});
+
+imageUpload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            ws.send(JSON.stringify({
+                type: 'message',
+                content: event.target.result,
+                isImage: true
+            }));
+        };
+        reader.readAsDataURL(file);
     }
 });
 
@@ -134,6 +200,17 @@ editRoomNameBtn.addEventListener('click', () => {
             type: 'roomName',
             name: newName
         }));
+    }
+});
+
+toggleInviteLinkBtn.addEventListener('click', () => {
+    const currentLink = inviteLink.textContent;
+    if (currentLink.includes('localhost')) {
+        updateInviteLink('local');
+    } else if (currentLink.match(/^http:\/\/(\d{1,3}\.){3}\d{1,3}:/)) {
+        updateInviteLink('public');
+    } else {
+        updateInviteLink('localhost');
     }
 });
 

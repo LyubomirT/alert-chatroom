@@ -72,7 +72,8 @@ wss.on('connection', (ws, req) => {
         broadcastToRoom(roomId, {
           type: 'message',
           content: data.content,
-          sender: username
+          sender: username,
+          isImage: data.isImage || false
         });
         break;
 
