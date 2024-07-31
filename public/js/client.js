@@ -183,19 +183,19 @@ function updateInviteLink(type) {
     switch (type) {
         case 'localhost':
             link = `http://localhost:${location.port}/room/${roomId}`;
-            inviteLink.textContent = link;
+            inviteLink.value = link;
             break;
         case 'local':
             getLocalIPs(function(ips) {
                 // Prefer non-link-local IP if available
                 const ip = ips.find(ip => !ip.startsWith('169.254.')) || ips[0];
                 link = `http://${ip}:${location.port}/room/${roomId}`;
-                inviteLink.textContent = link;
+                inviteLink.value = link;
             });
             return;
         default:
             link = window.location.href;
-            inviteLink.textContent = link;
+            inviteLink.value = link;
     }
 }
 
@@ -284,7 +284,7 @@ editRoomNameBtn.addEventListener('click', () => {
 });
 
 toggleInviteLinkBtn.addEventListener('click', () => {
-    const currentLink = inviteLink.textContent;
+    const currentLink = inviteLink.value;
     if (currentLink.includes('localhost')) {
         updateInviteLink('local');
     } else if (currentLink.match(/^http:\/\/(\d{1,3}\.){3}\d{1,3}:/)) {

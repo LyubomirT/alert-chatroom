@@ -46,6 +46,17 @@ body {
     overflow-y: auto;
 }
 
+.sidebar textarea {
+    width: calc(100% - 40px);
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    font-size: 1em;
+    margin-bottom: 10px;
+    resize: none;
+    font-family: 'Roboto', sans-serif;
+}
+
 #messages {
     display: flex;
     flex-direction: column;
