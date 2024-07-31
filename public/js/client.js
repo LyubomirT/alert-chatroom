@@ -7,7 +7,7 @@ const leaveBtn = document.getElementById('leave-btn');
 const usersList = document.getElementById('users-list');
 const roomNameElement = document.getElementById('room-name');
 const editRoomNameBtn = document.getElementById('edit-room-name-btn');
-const imageUpload = document.getElementById('image-upload');
+const fileUpload = document.getElementById('file-upload');
 
 let username;
 let ws;
@@ -42,7 +42,7 @@ function connectWithUsername() {
         const data = JSON.parse(event.data);
         switch (data.type) {
             case 'message':
-                addMessage(data.sender, data.content, data.isImage);
+                addMessage(data.sender, data.content, data.isFile, data.fileName);
                 break;
             case 'userList':
                 updateUsersList(data.users, data.host);
@@ -77,7 +77,7 @@ function connectWithUsername() {
     };
 }
 
-function addMessage(sender, content, isImage = false) {
+function addMessage(sender, content, isFile = false, fileName = null) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === username ? 'sent' : 'received');
@@ -93,10 +93,39 @@ function addMessage(sender, content, isImage = false) {
     const contentElement = document.createElement('div');
     contentElement.classList.add('message-content');
     
-    if (isImage) {
-        const img = document.createElement('img');
-        img.src = content;
-        contentElement.appendChild(img);
+    if (isFile) {
+        if (content.startsWith('data:image')) {
+            const img = document.createElement('img');
+            img.src = content;
+            contentElement.appendChild(img);
+        } else {
+            const fileBox = document.createElement('div');
+            fileBox.classList.add('file-box');
+            
+            const fileIcon = document.createElement('i');
+            fileIcon.classList.add('fas', 'fa-file'); // Default icon
+            if (fileName) {
+                const extension = fileName.split('.').pop().toLowerCase();
+                if (['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension)) {
+                    fileIcon.classList.add(`fa-file-${extension}`);
+                }
+            }
+            
+            const fileInfo = document.createElement('span');
+            fileInfo.textContent = fileName || 'Unnamed file';
+            
+            const downloadBtn = document.createElement('a');
+            downloadBtn.href = content;
+            downloadBtn.download = fileName || 'download';
+            downloadBtn.textContent = 'Download';
+            downloadBtn.classList.add('download-btn');
+            
+            fileBox.appendChild(fileIcon);
+            fileBox.appendChild(fileInfo);
+            fileBox.appendChild(downloadBtn);
+            
+            contentElement.appendChild(fileBox);
+        }
     } else {
         // Parse markdown and set as innerHTML
         contentElement.innerHTML = marked.parse(content);
@@ -248,7 +277,7 @@ messageForm.addEventListener('submit', (e) => {
     }
 });
 
-imageUpload.addEventListener('change', (e) => {
+fileUpload.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
         const reader = new FileReader();
@@ -256,7 +285,8 @@ imageUpload.addEventListener('change', (e) => {
             ws.send(JSON.stringify({
                 type: 'message',
                 content: event.target.result,
-                isImage: true
+                isFile: true,
+                fileName: file.name
             }));
         };
         reader.readAsDataURL(file);

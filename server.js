@@ -114,7 +114,8 @@ wss.on('connection', (ws, req) => {
             type: 'message',
             content: data.content,
             sender: username,
-            isImage: data.isImage || false
+            isFile: data.isFile || false,
+            fileName: data.fileName || null
           };
           chatrooms.get(roomId).messages.push(messageData);
           broadcastToRoom(roomId, messageData);

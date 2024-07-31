@@ -259,3 +259,49 @@ button:hover {
 .kick-button:hover {
     background-color: #bd2130;
 }
+
+.file-box {
+    display: flex;
+    align-items: center;
+    background-color: #f1f3f4;
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 5px;
+}
+
+.file-box i {
+    margin-right: 10px;
+    font-size: 1.2em;
+}
+
+.file-box span {
+    flex-grow: 1;
+    margin-right: 10px;
+    word-break: break-all;
+}
+
+.download-btn {
+    background-color: #4a6fa5;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.download-btn:hover {
+    background-color: #3a5a8c;
+}
+
+.file-upload-label {
+    cursor: pointer;
+    padding: 10px;
+    background-color: #4a6fa5;
+    color: white;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.file-upload-label:hover {
+    background-color: #3a5a8c;
+}
