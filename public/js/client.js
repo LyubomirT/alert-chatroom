@@ -98,9 +98,17 @@ function addMessage(sender, content, isImage = false) {
         img.src = content;
         contentElement.appendChild(img);
     } else {
-        // Replace newline characters with <br> tags
-        const formattedContent = content.replace(/\n/g, '<br>');
-        contentElement.innerHTML = formattedContent;
+        // Parse markdown and set as innerHTML
+        contentElement.innerHTML = marked.parse(content);
+        // replace all <a> tags with target="_blank"
+        contentElement.querySelectorAll('a').forEach(a => {
+            a.target = '_blank';
+        });
+        // remove trailing <br> tags
+        const brs = contentElement.querySelectorAll('br');
+        if (brs.length) {
+            brs[brs.length - 1].remove();
+        }
     }
     
     messageElement.appendChild(usernameElement);

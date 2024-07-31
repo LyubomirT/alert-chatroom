@@ -177,17 +177,28 @@ function handleUserLeave(ws, roomId, username) {
 
     if (room.host === ws) {
       room.host = null;
-      room.hostTimeout = setTimeout(() => {
-        if (room.users.size > 0) {
-          const [newHost, newHostUsername] = room.users.entries().next().value;
-          setNewHost(room, newHost, newHostUsername);
-          broadcastToRoom(roomId, {
-            type: 'message',
-            content: `${newHostUsername} is now the host.`,
-            sender: 'System'
-          });
-        }
-      }, 120000); // 2 minutes
+      room.hostUsername = null;
+      
+      // Clear any existing host timeout
+      if (room.hostTimeout) {
+        clearTimeout(room.hostTimeout);
+      }
+
+      // Set a new host immediately if there are other users
+      if (room.users.size > 0) {
+        const [newHost, newHostUsername] = room.users.entries().next().value;
+        setNewHost(room, newHost, newHostUsername);
+        broadcastToRoom(roomId, {
+          type: 'message',
+          content: `${newHostUsername} is now the host.`,
+          sender: 'System'
+        });
+      } else {
+        // If no users left, set a deletion timeout
+        room.deletionTimeout = setTimeout(() => {
+          chatrooms.delete(roomId);
+        }, 300000); // 5 minutes
+      }
     }
 
     if (room.users.size > 0) {
@@ -197,11 +208,6 @@ function handleUserLeave(ws, roomId, username) {
         sender: 'System'
       });
       updateUsersList(roomId);
-    } else {
-      // Set a deletion timeout instead of immediately deleting the room
-      room.deletionTimeout = setTimeout(() => {
-        chatrooms.delete(roomId);
-      }, 300000); // 5 minutes
     }
   }
 }

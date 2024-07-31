@@ -60,9 +60,66 @@ body {
     position: relative;
 }
 
+/* Add these styles for markdown elements */
 .message-content {
-    white-space: pre-wrap;
     word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4,
+.message-content h5,
+.message-content h6 {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
+.message-content p {
+    margin: 0.5em 0;
+}
+
+.message-content ul,
+.message-content ol {
+    padding-left: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.message-content pre {
+    background-color: #2c2c2c;
+    padding: 0.5em;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.message-content code {
+    background-color: #2f2f2f;
+    padding: 0.2em 0.4em;
+    border-radius: 3px;
+}
+
+.message-content blockquote {
+    border-left: 3px solid #ccc;
+    margin: 0.5em 0;
+    padding-left: 1em;
+    color: #ffffff;
+}
+
+.message-content table {
+    border-collapse: collapse;
+    margin-bottom: 0.5em;
+}
+
+.message-content th,
+.message-content td {
+    border: 1px solid #ddd;
+    padding: 0.3em 0.6em;
+}
+
+.message-content img {
+    max-width: 100%;
+    height: auto;
 }
 
 .message .username {
