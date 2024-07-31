@@ -42,7 +42,7 @@ function connectWithUsername() {
         const data = JSON.parse(event.data);
         switch (data.type) {
             case 'message':
-                addMessage(data.sender, data.content, data.isFile, data.fileName);
+                addMessage(data.sender, data.content, data.isFile, data.fileName, data.messageId, data.replyTo);
                 break;
             case 'userList':
                 updateUsersList(data.users, data.host);
@@ -69,6 +69,12 @@ function connectWithUsername() {
                 currentHost = data.host;
                 updateUsersList(null, data.host);
                 break;
+            case 'deleteMessage':
+                const messageToDelete = document.querySelector(`.message[data-message-id="${data.messageId}"]`);
+                if (messageToDelete) {
+                    messageToDelete.remove();
+                }
+                break;
         }
     };
 
@@ -77,10 +83,11 @@ function connectWithUsername() {
     };
 }
 
-function addMessage(sender, content, isFile = false, fileName = null) {
+function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === username ? 'sent' : 'received');
+    messageElement.dataset.messageId = messageId;
     
     const usernameElement = document.createElement('div');
     usernameElement.classList.add('username');
@@ -93,6 +100,13 @@ function addMessage(sender, content, isFile = false, fileName = null) {
     const contentElement = document.createElement('div');
     contentElement.classList.add('message-content');
     
+    if (replyTo) {
+        const replyElement = document.createElement('div');
+        replyElement.classList.add('reply-to');
+        replyElement.textContent = `Replying to ${replyTo.sender}: ${replyTo.content.substring(0, 50)}...`;
+        contentElement.appendChild(replyElement);
+    }
+    
     if (isFile) {
         if (content.startsWith('data:image')) {
             const img = document.createElement('img');
@@ -103,7 +117,7 @@ function addMessage(sender, content, isFile = false, fileName = null) {
             fileBox.classList.add('file-box');
             
             const fileIcon = document.createElement('i');
-            fileIcon.classList.add('fas', 'fa-file'); // Default icon
+            fileIcon.classList.add('fas', 'fa-file');
             if (fileName) {
                 const extension = fileName.split('.').pop().toLowerCase();
                 if (['mp3', 'wav', 'ogg'].includes(extension)) {
@@ -127,7 +141,7 @@ function addMessage(sender, content, isFile = false, fileName = null) {
                 } else if (['fbx', 'obj', 'blend', '3ds', 'stl', 'ply'].includes(extension)) {
                     fileIcon.classList.remove('fa-file');
                     fileIcon.classList.add('fa-cube');
-                } else if (['md', 'rst', 'adoc'].includes(extension)) {xzxxxzz
+                } else if (['md', 'rst', 'adoc'].includes(extension)) {
                     fileIcon.classList.remove('fa-file');
                     fileIcon.classList.add('fa-book');
                 }
@@ -149,13 +163,10 @@ function addMessage(sender, content, isFile = false, fileName = null) {
             contentElement.appendChild(fileBox);
         }
     } else {
-        // Parse markdown and set as innerHTML
         contentElement.innerHTML = marked.parse(content);
-        // replace all <a> tags with target="_blank"
         contentElement.querySelectorAll('a').forEach(a => {
             a.target = '_blank';
         });
-        // remove trailing <br> tags
         const brs = contentElement.querySelectorAll('br');
         if (brs.length) {
             brs[brs.length - 1].remove();
@@ -164,6 +175,32 @@ function addMessage(sender, content, isFile = false, fileName = null) {
     
     messageElement.appendChild(usernameElement);
     messageElement.appendChild(contentElement);
+    
+    // Add toolbar
+    const toolbar = document.createElement('div');
+    toolbar.classList.add('message-toolbar');
+    
+    const replyButton = document.createElement('button');
+    replyButton.innerHTML = '<i class="fas fa-reply"></i>';
+    replyButton.onclick = () => replyToMessage(messageId, sender, content);
+    toolbar.appendChild(replyButton);
+    
+    if (sender === username || isHost) {
+        const deleteButton = document.createElement('button');
+        deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+        deleteButton.onclick = () => deleteMessage(messageId);
+        toolbar.appendChild(deleteButton);
+    }
+    
+    messageElement.appendChild(toolbar);
+    
+    messageElement.addEventListener('mouseover', () => {
+        toolbar.style.display = 'flex';
+    });
+    
+    messageElement.addEventListener('mouseout', () => {
+        toolbar.style.display = 'none';
+    });
     
     messagesContainer.appendChild(messageElement);
     messagesContainer.scrollIntoView(false);
@@ -198,7 +235,6 @@ function updateUsersList(users, host) {
             usersList.appendChild(li);
         });
     } else if (host) {
-        // Update only the host crown
         const userItems = usersList.getElementsByTagName('li');
         for (let item of userItems) {
             const userName = item.textContent;
@@ -238,7 +274,6 @@ function updateInviteLink(type) {
             break;
         case 'local':
             getLocalIPs(function(ips) {
-                // Prefer non-link-local IP if available
                 const ip = ips.find(ip => !ip.startsWith('169.254.')) || ips[0];
                 link = `http://${ip}:${location.port}/room/${roomId}`;
                 inviteLink.value = link;
@@ -277,6 +312,20 @@ function resizeTextarea() {
     messageInput.style.height = (messageInput.scrollHeight) + 'px';
 }
 
+function replyToMessage(messageId, sender, content) {
+    const replyTo = { messageId, sender, content };
+    messageInput.value = `Replying to ${sender}: ${content.substring(0, 50)}...\n\n${messageInput.value}`;
+    messageInput.dataset.replyTo = JSON.stringify(replyTo);
+    messageInput.focus();
+}
+
+function deleteMessage(messageId) {
+    ws.send(JSON.stringify({
+        type: 'deleteMessage',
+        messageId: messageId
+    }));
+}
+
 messageInput.addEventListener('input', resizeTextarea);
 
 messageInput.addEventListener('keydown', (e) => {
@@ -290,11 +339,14 @@ messageForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const message = messageInput.value.trim();
     if (message) {
+        const replyTo = messageInput.dataset.replyTo ? JSON.parse(messageInput.dataset.replyTo) : null;
         ws.send(JSON.stringify({
             type: 'message',
-            content: message
+            content: message,
+            replyTo: replyTo
         }));
         messageInput.value = '';
+        delete messageInput.dataset.replyTo;
         resizeTextarea();
     }
 });
@@ -304,7 +356,6 @@ fileUpload.addEventListener('change', (e) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
-            // only if the file is less than 50MB
             if (event.target.result.length > 50000000) {
                 alert('File size exceeds 50MB limit');
                 return;

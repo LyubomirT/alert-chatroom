@@ -71,6 +71,38 @@ body {
     position: relative;
 }
 
+.message-toolbar {
+    position: absolute;
+    top: -25px;
+    right: 0;
+    display: none;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    padding: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message-toolbar button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 5px;
+    color: #6c757d;
+}
+
+.message-toolbar button:hover {
+    color: #dae5f1;
+}
+
+.reply-to {
+    font-size: 0.8em;
+    color: #6c757d;
+    margin-bottom: 5px;
+    padding: 2px 5px;
+    background-color: #f1f3f5;
+    border-radius: 3px;
+}
+
 /* Add these styles for markdown elements */
 .message-content {
     word-wrap: break-word;

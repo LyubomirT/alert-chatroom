@@ -110,12 +110,15 @@ wss.on('connection', (ws, req) => {
 
       case 'message':
         if (chatrooms.has(roomId)) {
+          const messageId = uuidv4();
           const messageData = {
             type: 'message',
+            messageId: messageId,
             content: data.content,
             sender: username,
             isFile: data.isFile || false,
-            fileName: data.fileName || null
+            fileName: data.fileName || null,
+            replyTo: data.replyTo || null
           };
           chatrooms.get(roomId).messages.push(messageData);
           broadcastToRoom(roomId, messageData);
@@ -124,6 +127,23 @@ wss.on('connection', (ws, req) => {
             type: 'error',
             message: 'Room not found'
           }));
+        }
+        break;
+
+      case 'deleteMessage':
+        if (chatrooms.has(roomId)) {
+          const room = chatrooms.get(roomId);
+          const messageIndex = room.messages.findIndex(m => m.messageId === data.messageId);
+          if (messageIndex !== -1) {
+            const message = room.messages[messageIndex];
+            if (message.sender === username || room.host === ws) {
+              room.messages.splice(messageIndex, 1);
+              broadcastToRoom(roomId, {
+                type: 'deleteMessage',
+                messageId: data.messageId
+              });
+            }
+          }
         }
         break;
 
@@ -235,6 +255,7 @@ function updateUsersList(roomId) {
   }
 }
 
+// Add this at the end of your routes, just before starting the server
 app.use((req, res, next) => {
   res.status(404).render('404');
 });
