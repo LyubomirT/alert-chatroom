@@ -42,6 +42,9 @@ function connectWithUsername() {
         const data = JSON.parse(event.data);
         switch (data.type) {
             case 'message':
+                if (data.replyTo) {
+                    console.log(data.replyTo);
+                }
                 addMessage(data.sender, data.content, data.isFile, data.fileName, data.messageId, data.replyTo);
                 break;
             case 'userList':
@@ -103,7 +106,8 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     if (replyTo) {
         const replyElement = document.createElement('div');
         replyElement.classList.add('reply-to');
-        replyElement.textContent = `Replying to ${replyTo.sender}: ${replyTo.content.substring(0, 50)}...`;
+        replyElement.innerHTML = `<strong>Replying to ${replyTo.sender}:</strong> ${replyTo.content}`;
+        replyElement.onclick = () => scrollToMessage(replyTo.messageId);
         contentElement.appendChild(replyElement);
     }
     
@@ -163,14 +167,12 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
             contentElement.appendChild(fileBox);
         }
     } else {
-        contentElement.innerHTML = marked.parse(content);
-        contentElement.querySelectorAll('a').forEach(a => {
+        const messageTextElement = document.createElement('div');
+        messageTextElement.innerHTML = marked.parse(content);
+        messageTextElement.querySelectorAll('a').forEach(a => {
             a.target = '_blank';
         });
-        const brs = contentElement.querySelectorAll('br');
-        if (brs.length) {
-            brs[brs.length - 1].remove();
-        }
+        contentElement.appendChild(messageTextElement);
     }
     
     messageElement.appendChild(usernameElement);
@@ -203,7 +205,7 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     });
     
     messagesContainer.appendChild(messageElement);
-    messagesContainer.scrollIntoView(false);
+    messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
 function updateUsersList(users, host) {
@@ -314,9 +316,41 @@ function resizeTextarea() {
 
 function replyToMessage(messageId, sender, content) {
     const replyTo = { messageId, sender, content };
-    messageInput.value = `Replying to ${sender}: ${content.substring(0, 50)}...\n\n${messageInput.value}`;
     messageInput.dataset.replyTo = JSON.stringify(replyTo);
+    updateReplyPreview(replyTo);
     messageInput.focus();
+}
+
+function updateReplyPreview(replyTo) {
+    let replyPreview = document.getElementById('reply-preview');
+    if (!replyPreview) {
+        replyPreview = document.createElement('div');
+        replyPreview.id = 'reply-preview';
+        messageForm.insertBefore(replyPreview, messageInput);
+    }
+    const replyContent = replyTo.content.substring(0, 100) + (replyTo.content.length > 100 ? '...' : '');
+    replyPreview.innerHTML = `
+        <div>Replying to ${replyTo.sender}: ${replyContent}</div>
+        <button id="cancel-reply"><i class="fas fa-times"></i></button>
+    `;
+    document.getElementById('cancel-reply').onclick = cancelReply;
+}
+
+function cancelReply() {
+    delete messageInput.dataset.replyTo;
+    const replyPreview = document.getElementById('reply-preview');
+    if (replyPreview) {
+        replyPreview.remove();
+    }
+}
+
+function scrollToMessage(messageId) {
+    const message = document.querySelector(`.message[data-message-id="${messageId}"]`);
+    if (message) {
+        message.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        message.classList.add('highlight');
+        setTimeout(() => message.classList.remove('highlight'), 2000);
+    }
 }
 
 function deleteMessage(messageId) {
@@ -346,7 +380,7 @@ messageForm.addEventListener('submit', (e) => {
             replyTo: replyTo
         }));
         messageInput.value = '';
-        delete messageInput.dataset.replyTo;
+        cancelReply();
         resizeTextarea();
     }
 });

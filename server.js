@@ -118,7 +118,11 @@ wss.on('connection', (ws, req) => {
             sender: username,
             isFile: data.isFile || false,
             fileName: data.fileName || null,
-            replyTo: data.replyTo || null
+            replyTo: data.replyTo ? {
+              messageId: data.replyTo.messageId,
+              sender: data.replyTo.sender,
+              content: data.replyTo.content.substring(0, 100) + (data.replyTo.content.length > 100 ? '...' : '')
+            } : null
           };
           chatrooms.get(roomId).messages.push(messageData);
           broadcastToRoom(roomId, messageData);
@@ -255,7 +259,6 @@ function updateUsersList(roomId) {
   }
 }
 
-// Add this at the end of your routes, just before starting the server
 app.use((req, res, next) => {
   res.status(404).render('404');
 });
