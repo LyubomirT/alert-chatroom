@@ -233,7 +233,7 @@ function updateInviteLink(type) {
     let link;
     switch (type) {
         case 'localhost':
-            link = `http://localhost:${location.port}/room/${roomId}`;
+            link = window.location.href
             inviteLink.value = link;
             break;
         case 'local':
