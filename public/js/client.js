@@ -45,7 +45,7 @@ function connectWithUsername() {
                 if (data.replyTo) {
                     console.log(data.replyTo);
                 }
-                addMessage(data.sender, data.content, data.isFile, data.fileName, data.messageId, data.replyTo);
+                addMessage(data.sender, data.content, data.isFile, data.fileName, data.messageId, data.replyTo, data.reactions);
                 break;
             case 'userList':
                 updateUsersList(data.users, data.host);
@@ -78,6 +78,9 @@ function connectWithUsername() {
                     messageToDelete.remove();
                 }
                 break;
+            case 'updateReactions':
+                updateReactions(data.messageId, data.reactions);
+                break;
         }
     };
 
@@ -86,7 +89,7 @@ function connectWithUsername() {
     };
 }
 
-function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null) {
+function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null, reactions = null) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === username ? 'sent' : 'received');
@@ -187,6 +190,11 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     replyButton.onclick = () => replyToMessage(messageId, sender, content);
     toolbar.appendChild(replyButton);
     
+    const reactButton = document.createElement('button');
+    reactButton.innerHTML = '<i class="fas fa-smile"></i>';
+    reactButton.onclick = (event) => showEmojiPicker(event, messageId);
+    toolbar.appendChild(reactButton);
+    
     if (sender === username || isHost) {
         const deleteButton = document.createElement('button');
         deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
@@ -195,6 +203,11 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     }
     
     messageElement.appendChild(toolbar);
+    
+    // Add reactions container
+    const reactionsContainer = document.createElement('div');
+    reactionsContainer.classList.add('reactions-container');
+    messageElement.appendChild(reactionsContainer);
     
     messageElement.addEventListener('mouseover', () => {
         toolbar.style.display = 'flex';
@@ -205,6 +218,12 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     });
     
     messagesContainer.appendChild(messageElement);
+
+    // If there are initial reactions, display them
+    console.log(reactions);
+    if (reactions) {
+        updateReactions(messageId, reactions);
+    }
     messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
@@ -357,6 +376,52 @@ function deleteMessage(messageId) {
     ws.send(JSON.stringify({
         type: 'deleteMessage',
         messageId: messageId
+    }));
+}
+
+function showEmojiPicker(event, messageId) {
+    const picker = new EmojiButton();
+    picker.on('emoji', emoji => {
+        addReaction(messageId, emoji);
+    });
+    picker.togglePicker(event.target);
+}
+
+function addReaction(messageId, emoji) {
+    ws.send(JSON.stringify({
+        type: 'reaction',
+        messageId: messageId,
+        emoji: emoji
+    }));
+}
+
+function updateReactions(messageId, reactions) {
+    const messageElement = document.querySelector(`.message[data-message-id="${messageId}"]`);
+    console.log(reactions);
+    console.log(messageElement);
+    if (messageElement) {
+        const reactionsContainer = messageElement.querySelector('.reactions-container');
+        reactionsContainer.innerHTML = '';
+        
+        for (const [emoji, users] of Object.entries(reactions)) {
+            const reactionElement = document.createElement('span');
+            reactionElement.classList.add('reaction');
+            reactionElement.innerHTML = `${emoji} ${users.length}`;
+            reactionElement.title = users.join(', ');
+            if (users.includes(username)) {
+                reactionElement.classList.add('user-reacted');
+            }
+            reactionElement.onclick = () => toggleReaction(messageId, emoji);
+            reactionsContainer.appendChild(reactionElement);
+        }
+    }
+}
+
+function toggleReaction(messageId, emoji) {
+    ws.send(JSON.stringify({
+        type: 'toggleReaction',
+        messageId: messageId,
+        emoji: emoji
     }));
 }
 

@@ -109,29 +109,31 @@ wss.on('connection', (ws, req) => {
         }
         break;
 
+      
       case 'message':
         if (chatrooms.has(roomId)) {
-          const messageId = uuidv4();
-          const messageData = {
-            type: 'message',
-            messageId: messageId,
-            content: data.content,
-            sender: username,
-            isFile: data.isFile || false,
-            fileName: data.fileName || null,
-            replyTo: data.replyTo ? {
-              messageId: data.replyTo.messageId,
-              sender: data.replyTo.sender,
-              content: data.replyTo.content.substring(0, 100) + (data.replyTo.content.length > 100 ? '...' : '')
-            } : null
-          };
-          chatrooms.get(roomId).messages.push(messageData);
-          broadcastToRoom(roomId, messageData);
+            const messageId = uuidv4();
+            const messageData = {
+                type: 'message',
+                messageId: messageId,
+                content: data.content,
+                sender: username,
+                isFile: data.isFile || false,
+                fileName: data.fileName || null,
+                replyTo: data.replyTo ? {
+                    messageId: data.replyTo.messageId,
+                    sender: data.replyTo.sender,
+                    content: data.replyTo.content.substring(0, 100) + (data.replyTo.content.length > 100 ? '...' : '')
+                } : null,
+                reactions: {}  // Initialize empty reactions object
+            };
+            chatrooms.get(roomId).messages.push(messageData);
+            broadcastToRoom(roomId, messageData);
         } else {
-          ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Room not found'
-          }));
+            ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Room not found'
+            }));
         }
         break;
 
@@ -177,6 +179,14 @@ wss.on('connection', (ws, req) => {
 
       case 'leave':
         handleUserLeave(ws, roomId, username);
+        break;
+
+      case 'reaction':
+        handleReaction(roomId, username, data.messageId, data.emoji);
+        break;
+
+      case 'toggleReaction':
+        handleToggleReaction(roomId, username, data.messageId, data.emoji);
         break;
     }
   });
@@ -228,13 +238,29 @@ function handleUserLeave(ws, roomId, username) {
     }
 
     if (room.users.size > 0) {
-      broadcastToRoom(roomId, {
-        type: 'message',
-        content: `${username} has left the chat`,
-        sender: 'System'
-      });
-      updateUsersList(roomId);
+        broadcastToRoom(roomId, {
+            type: 'message',
+            content: `${username} has left the chat`,
+            sender: 'System'
+        });
+        updateUsersList(roomId);
     }
+
+    // Remove user's reactions from all messages
+    room.messages.forEach(message => {
+        if (message.reactions) {
+            Object.keys(message.reactions).forEach(emoji => {
+                const index = message.reactions[emoji].indexOf(username);
+                if (index > -1) {
+                    message.reactions[emoji].splice(index, 1);
+                    if (message.reactions[emoji].length === 0) {
+                        delete message.reactions[emoji];
+                    }
+                    broadcastReactions(roomId, message.messageId, message.reactions);
+                }
+            });
+        }
+    });
   }
 }
 
@@ -258,6 +284,52 @@ function updateUsersList(roomId) {
       host: room.hostUsername
     });
   }
+}
+
+function handleReaction(roomId, username, messageId, emoji) {
+  if (chatrooms.has(roomId)) {
+    const room = chatrooms.get(roomId);
+    const message = room.messages.find(m => m.messageId === messageId);
+    if (message) {
+      if (!message.reactions) {
+        message.reactions = {};
+      }
+      if (!message.reactions[emoji]) {
+        message.reactions[emoji] = [];
+      }
+      if (!message.reactions[emoji].includes(username)) {
+        message.reactions[emoji].push(username);
+        broadcastReactions(roomId, messageId, message.reactions);
+      }
+    }
+  }
+}
+
+function handleToggleReaction(roomId, username, messageId, emoji) {
+  if (chatrooms.has(roomId)) {
+    const room = chatrooms.get(roomId);
+    const message = room.messages.find(m => m.messageId === messageId);
+    if (message && message.reactions && message.reactions[emoji]) {
+      const index = message.reactions[emoji].indexOf(username);
+      if (index > -1) {
+        message.reactions[emoji].splice(index, 1);
+        if (message.reactions[emoji].length === 0) {
+          delete message.reactions[emoji];
+        }
+      } else {
+        message.reactions[emoji].push(username);
+      }
+      broadcastReactions(roomId, messageId, message.reactions);
+    }
+  }
+}
+
+function broadcastReactions(roomId, messageId, reactions) {
+  broadcastToRoom(roomId, {
+    type: 'updateReactions',
+    messageId: messageId,
+    reactions: reactions
+  });
 }
 
 app.use((req, res, next) => {
