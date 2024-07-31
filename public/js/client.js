@@ -106,8 +106,30 @@ function addMessage(sender, content, isFile = false, fileName = null) {
             fileIcon.classList.add('fas', 'fa-file'); // Default icon
             if (fileName) {
                 const extension = fileName.split('.').pop().toLowerCase();
-                if (['pdf', 'doc', 'docx', 'txt', 'xls', 'xlsx', 'ppt', 'pptx'].includes(extension)) {
-                    fileIcon.classList.add(`fa-file-${extension}`);
+                if (['mp3', 'wav', 'ogg'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-file-audio');
+                } else if (['mp4', 'webm', 'avi', 'mov'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-file-video');
+                } else if (['exe', 'msi', 'dmg', 'pkg'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-file-archive');
+                } else if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-file-alt');
+                } else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-file-archive');
+                } else if (['.py', '.js', '.html', '.css', '.java', '.cpp', '.c', '.h', '.cs', '.php', '.rb', '.sh', '.bat'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-file-code');
+                } else if (['fbx', 'obj', 'blend', '3ds', 'stl', 'ply'].includes(extension)) {
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-cube');
+                } else if (['md', 'rst', 'adoc'].includes(extension)) {xzxxxzz
+                    fileIcon.classList.remove('fa-file');
+                    fileIcon.classList.add('fa-book');
                 }
             }
             
@@ -282,6 +304,11 @@ fileUpload.addEventListener('change', (e) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
+            // only if the file is less than 50MB
+            if (event.target.result.length > 50000000) {
+                alert('File size exceeds 50MB limit');
+                return;
+            }
             ws.send(JSON.stringify({
                 type: 'message',
                 content: event.target.result,

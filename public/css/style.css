@@ -267,6 +267,7 @@ button:hover {
     border-radius: 5px;
     padding: 10px;
     margin-top: 5px;
+    color: #2c2c2c;
 }
 
 .file-box i {
