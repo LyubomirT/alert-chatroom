@@ -3,6 +3,7 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const { exec } = require('child_process');
 
 const app = express();
 const server = http.createServer(app);
@@ -263,7 +264,34 @@ app.use((req, res, next) => {
   res.status(404).render('404');
 });
 
-const PORT = process.env.PORT || 3000;
+function retrieveFromHostIni(section, key) {
+  const fs = require('fs');
+  const ini = require('ini');
+  const config = ini.parse(fs.readFileSync('host.ini', 'utf-8'));
+  return config[section][key];
+}
+
+function ThreadRunJPRQ() {
+  // retrieve COMMAND from host.ini
+  const COMMAND = retrieveFromHostIni('JPRQ', 'COMMAND');
+  // retrieve ARGS from host.ini
+  const ARGS = retrieveFromHostIni('JPRQ', 'ARGS');
+
+  // execute command
+  exec(`${COMMAND} http ${retrieveFromHostIni('JPRQ', 'PORT')} ${ARGS}`, (error, stdout, stderr) => {
+    if (error) {
+      console.error(`exec error: ${error}`);
+      return;
+    }
+    console.log(`stdout: ${stdout}`);
+    console.error(`stderr: ${stderr}`);
+  });
+}
+
+const PORT = retrieveFromHostIni('JPRQ', 'PORT');
 server.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  if (retrieveFromHostIni('GENERAL', 'MODE') === 'JPRQ') {
+    ThreadRunJPRQ();
+  }
 });
