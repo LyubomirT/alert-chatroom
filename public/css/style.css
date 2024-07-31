@@ -65,7 +65,7 @@ body {
 .message {
     max-width: 70%;
     margin-bottom: 20px;
-    padding: 10px;
+    padding: 5px 10px;
     border-radius: 20px;
     word-wrap: break-word;
     position: relative;
@@ -129,8 +129,8 @@ body {
 }
 
 .message-content img {
-    max-width: 100%;
-    height: auto;
+    max-width: 300px;
+    border-radius: 10px;
 }
 
 .message .username {
@@ -222,12 +222,6 @@ button:hover {
     margin-top: 10px;
     font-size: 0.9em;
     padding: 5px 10px;
-}
-
-.message img {
-    max-width: 100%;
-    border-radius: 10px;
-    margin-top: 5px;
 }
 
 #users-list {
