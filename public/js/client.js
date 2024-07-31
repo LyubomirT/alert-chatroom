@@ -81,6 +81,14 @@ function connectWithUsername() {
             case 'updateReactions':
                 updateReactions(data.messageId, data.reactions);
                 break;
+            case 'banPrompt':
+                if (confirm(`Do you want to ban ${data.username} (${data.ip}) from this room?`)) {
+                    banUser(data.username, data.ip);
+                }
+                break;
+            case 'updateBannedList':
+                updateBannedList(data.bannedList);
+                break;
         }
     };
 
@@ -227,6 +235,7 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
+
 function updateUsersList(users, host) {
     if (users) {
         usersList.innerHTML = '';
@@ -284,6 +293,35 @@ function kickUser(userToKick) {
         type: 'kick',
         username: userToKick
     }));
+}
+
+function banUser(username, ip) {
+    ws.send(JSON.stringify({
+        type: 'ban',
+        username: username,
+        ip: ip
+    }));
+}
+
+function unbanUser(ip) {
+    ws.send(JSON.stringify({
+        type: 'unban',
+        ip: ip
+    }));
+}
+
+function updateBannedList(bannedList) {
+    const bannedListElement = document.getElementById('banned-list');
+    bannedListElement.innerHTML = '';
+    bannedList.forEach(({ ip, username }) => {
+        const li = document.createElement('li');
+        li.textContent = `${ip} (${username || 'Unknown'})`;
+        const unbanBtn = document.createElement('button');
+        unbanBtn.textContent = 'Unban';
+        unbanBtn.onclick = () => unbanUser(ip);
+        li.appendChild(unbanBtn);
+        bannedListElement.appendChild(li);
+    });
 }
 
 function updateInviteLink(type) {

@@ -30,7 +30,8 @@ app.post('/create-room', (req, res) => {
     showPastMessages: req.body.showPastMessages === 'on',
     messages: [],
     hostTimeout: null,
-    deletionTimeout: null
+    deletionTimeout: null,
+    bannedIPs: new Set() // New: Set to store banned IPs for this room
   });
   res.redirect(`/room/${roomId}`);
 });
@@ -47,6 +48,7 @@ app.get('/room/:roomId', (req, res) => {
 wss.on('connection', (ws, req) => {
   let roomId;
   let username;
+  const clientIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   ws.on('message', (message) => {
     const data = JSON.parse(message);
@@ -59,6 +61,16 @@ wss.on('connection', (ws, req) => {
         if (chatrooms.has(roomId)) {
           const room = chatrooms.get(roomId);
           
+          // Check if IP is banned
+          if (room.bannedIPs.has(clientIP)) {
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: 'You are banned from this room'
+            }));
+            ws.close();
+            return;
+          }
+
           // Clear deletion timeout if it exists
           if (room.deletionTimeout) {
             clearTimeout(room.deletionTimeout);
@@ -101,6 +113,14 @@ wss.on('connection', (ws, req) => {
               ws.send(JSON.stringify(msg));
             });
           }
+
+          // Send banned list to host
+          if (room.host === ws) {
+            ws.send(JSON.stringify({
+              type: 'updateBannedList',
+              bannedList: Array.from(room.bannedIPs).map(ip => ({ ip, username: '' }))
+            }));
+          }
         } else {
           ws.send(JSON.stringify({
             type: 'error',
@@ -109,7 +129,6 @@ wss.on('connection', (ws, req) => {
         }
         break;
 
-      
       case 'message':
         if (chatrooms.has(roomId)) {
             const messageId = uuidv4();
@@ -171,9 +190,39 @@ wss.on('connection', (ws, req) => {
             .find(([_, name]) => name === data.username);
           
           if (userToKick) {
+            const kickedIP = userToKick[0]._socket.remoteAddress;
             userToKick[0].send(JSON.stringify({ type: 'kicked' }));
             userToKick[0].close();
+
+            // Ask host if they want to ban the IP
+            ws.send(JSON.stringify({
+              type: 'banPrompt',
+              username: data.username,
+              ip: kickedIP
+            }));
           }
+        }
+        break;
+
+      case 'ban':
+        if (chatrooms.has(roomId) && chatrooms.get(roomId).host === ws) {
+          const room = chatrooms.get(roomId);
+          room.bannedIPs.add(data.ip);
+          broadcastToRoom(roomId, {
+            type: 'updateBannedList',
+            bannedList: Array.from(room.bannedIPs).map(ip => ({ ip, username: data.username }))
+          });
+        }
+        break;
+
+      case 'unban':
+        if (chatrooms.has(roomId) && chatrooms.get(roomId).host === ws) {
+          const room = chatrooms.get(roomId);
+          room.bannedIPs.delete(data.ip);
+          broadcastToRoom(roomId, {
+            type: 'updateBannedList',
+            bannedList: Array.from(room.bannedIPs).map(ip => ({ ip, username: '' }))
+          });
         }
         break;
 
