@@ -25,7 +25,7 @@ app.post('/create-room', (req, res) => {
     users: new Map(),
     host: null,
     hostUsername: null,
-    name: 'Alert Chatroom',
+    name: req.body.roomName,
     showPastMessages: req.body.showPastMessages === 'on',
     messages: [],
     hostTimeout: null,
