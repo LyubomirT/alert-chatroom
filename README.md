@@ -5,11 +5,13 @@
   <img src="public/Alert.png" alt="Alert Logo" width="200" height="200">
 </div>
 
+<div align="center">
+
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Made with Node.js](https://img.shields.io/badge/Made%20with-Node.js-green.svg)](https://nodejs.org)
 [![Powered by WebSockets](https://img.shields.io/badge/Powered%20by-WebSockets-yellow.svg)](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API)
-[![Hosted with JPRQ](https://img.shields.io/badge/Hosted%20with-JPRQ-orange.svg)](https://jprq.io)
-[![Try it out](https://img.shields.io/badge/Try%20it%20out-Here-red.svg)](https://alertchat.jprq.app)
+
+</div>
 
 ## What's Alert? 🤔
 
