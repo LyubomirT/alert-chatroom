@@ -11,6 +11,7 @@ const fileUpload = document.getElementById('file-upload');
 const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const searchResults = document.getElementById('search-results');
+const toggleDiscoverabilityBtn = document.getElementById('toggle-discoverability');
 
 let username;
 let ws;
@@ -106,6 +107,9 @@ function connectWithUsername() {
             case 'host':
                 isHost = true;
                 editRoomNameBtn.style.display = 'inline-block';
+                if (isHost) {
+                    toggleDiscoverabilityBtn.style.display = 'inline-block';
+                }
                 break;
             case 'kicked':
                 alert('You have been kicked from the room.');
@@ -140,6 +144,9 @@ function connectWithUsername() {
                 break;
             case 'typingUpdate':
                 updateTypingIndicator(data.typingUsers);
+                break;
+            case 'discoverabilityUpdate':
+                toggleDiscoverabilityBtn.textContent = data.discoverable ? 'Make Private' : 'Make Discoverable';
                 break;
         }
     };
@@ -655,6 +662,13 @@ toggleInviteLinkBtn.addEventListener('click', () => {
     } else {
         updateInviteLink('localhost');
     }
+});
+
+toggleDiscoverabilityBtn.addEventListener('click', () => {
+    ws.send(JSON.stringify({
+        type: 'toggleDiscoverability',
+        discoverable: toggleDiscoverabilityBtn.textContent === 'Make Discoverable'
+    }));
 });
 
 init();

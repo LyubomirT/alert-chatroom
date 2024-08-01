@@ -31,7 +31,8 @@ app.post('/create-room', (req, res) => {
     messages: [],
     hostTimeout: null,
     deletionTimeout: null,
-    bannedIPs: new Set() // New: Set to store banned IPs for this room
+    bannedIPs: new Set(),
+    discoverable: false // New: default to not discoverable
   });
   res.redirect(`/room/${roomId}`);
 });
@@ -42,6 +43,43 @@ app.get('/room/:roomId', (req, res) => {
     res.render('chatroom', { roomId });
   } else {
     res.status(404).render('404');
+  }
+});
+
+// New: Discover route
+app.get('/discover', (req, res) => {
+  const discoverableRooms = Array.from(chatrooms.entries())
+    .filter(([_, room]) => room.discoverable)
+    .map(([id, room]) => ({
+      id,
+      name: room.name,
+      userCount: room.users.size
+    }));
+  res.render('discover', { rooms: discoverableRooms });
+});
+
+// New: Search rooms
+app.get('/api/search-rooms', (req, res) => {
+  const query = req.query.q.toLowerCase();
+  const matchingRooms = Array.from(chatrooms.entries())
+    .filter(([_, room]) => room.discoverable && room.name.toLowerCase().includes(query))
+    .map(([id, room]) => ({
+      id,
+      name: room.name,
+      userCount: room.users.size
+    }));
+  res.json(matchingRooms);
+});
+
+// New: Get random room
+app.get('/api/random-room', (req, res) => {
+  const discoverableRooms = Array.from(chatrooms.entries())
+    .filter(([_, room]) => room.discoverable);
+  if (discoverableRooms.length > 0) {
+    const randomRoom = discoverableRooms[Math.floor(Math.random() * discoverableRooms.length)];
+    res.json({ id: randomRoom[0], name: randomRoom[1].name });
+  } else {
+    res.status(404).json({ error: 'No discoverable rooms available' });
   }
 });
 
@@ -240,6 +278,17 @@ wss.on('connection', (ws, req) => {
 
       case 'typing':
         handleTypingStatus(roomId, username, data.typing);
+        break;
+
+      case 'toggleDiscoverability':
+        if (chatrooms.has(roomId) && chatrooms.get(roomId).host === ws) {
+          const room = chatrooms.get(roomId);
+          room.discoverable = data.discoverable;
+          ws.send(JSON.stringify({
+            type: 'discoverabilityUpdate',
+            discoverable: room.discoverable
+          }));
+        }
         break;
     }
   });

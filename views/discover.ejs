@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discover Chatrooms - Alert</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/discover.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-search"></i> Discover Chatrooms</h1>
+        </header>
+        <main>
+            <section class="search-section">
+                <input type="text" id="search-input" placeholder="Search for rooms...">
+                <button id="search-btn"><i class="fas fa-search"></i></button>
+                <button id="random-btn"><i class="fas fa-random"></i> Random Room</button>
+            </section>
+            <section class="rooms-list">
+                <h2>Available Rooms</h2>
+                <div id="rooms-container">
+                    <% rooms.forEach(function(room) { %>
+                        <div class="room-card">
+                            <h3><%= room.name %></h3>
+                            <p><i class="fas fa-users"></i> <%= room.userCount %> users</p>
+                            <a href="/room/<%= room.id %>" class="join-btn">Join</a>
+                        </div>
+                    <% }); %>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2024 Alert. All rights reserved.</p>
+        </footer>
+    </div>
+    <script src="/js/discover.js"></script>
+</body>
+</html>
