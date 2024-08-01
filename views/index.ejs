@@ -3,22 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alert Chatroom</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <title>Alert - P2P Chatrooms</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Alert Chatroom</h1>
-        <form action="/create-room" method="POST">
-            <div>
-                <input type="checkbox" id="showPastMessages" name="showPastMessages">
-                <label for="showPastMessages">Allow new users to see past messages</label>
-                <br>
-                <label for="roomName">Room Name</label>
-                <input type="text" id="roomName" name="roomName" placeholder="Enter Room Name" required>
-            </div>
-            <button type="submit">Create New Chatroom</button>
-        </form>
+        <header>
+            <h1><i class="fas fa-comments"></i> Alert</h1>
+            <p>Create and join peer-to-peer chatrooms instantly</p>
+        </header>
+        <main>
+            <section class="create-room">
+                <h2>Create a New Chatroom</h2>
+                <form action="/create-room" method="POST">
+                    <div class="form-group">
+                        <label for="roomName">Room Name</label>
+                        <input type="text" id="roomName" name="roomName" placeholder="Enter Room Name" required>
+                    </div>
+                    <div class="form-group checkbox">
+                        <input type="checkbox" id="showPastMessages" name="showPastMessages">
+                        <label for="showPastMessages">Allow new users to see past messages</label>
+                    </div>
+                    <button type="submit" class="btn-primary">Create Chatroom</button>
+                </form>
+            </section>
+            <section class="features">
+                <h2>Features</h2>
+                <ul>
+                    <li><i class="fas fa-lock"></i> Secure P2P Communication</li>
+                    <li><i class="fas fa-globe"></i> Accessible from Anywhere</li>
+                    <li><i class="fas fa-user-shield"></i> Host Controls</li>
+                    <li><i class="fas fa-history"></i> Optional Message History</li>
+                </ul>
+            </section>
+        </main>
+        <footer>
+            <p>&copy; 2024 Alert. All rights reserved.</p>
+        </footer>
     </div>
 </body>
 </html>
