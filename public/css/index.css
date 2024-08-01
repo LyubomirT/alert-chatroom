@@ -60,11 +60,12 @@ label {
 }
 
 input[type="text"] {
-    width: 100%;
+    width: 90%;
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ddd;
     border-radius: 4px;
+    margin-bottom: 1rem;
 }
 
 .checkbox {
