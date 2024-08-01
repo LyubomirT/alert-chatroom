@@ -1,8 +1,7 @@
 
-# Alert: P2P Chatrooms at Your Fingertips 🚀
-
 <div align="center">
   <img src="public/Alert.png" alt="Alert Logo" width="200" height="200">
+  <i><b><p>Alert - Chatrooms for Everyone!</p></b></i>
 </div>
 
 <div align="center">
