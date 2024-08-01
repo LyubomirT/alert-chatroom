@@ -237,6 +237,10 @@ wss.on('connection', (ws, req) => {
       case 'toggleReaction':
         handleToggleReaction(roomId, username, data.messageId, data.emoji);
         break;
+
+      case 'typing':
+        handleTypingStatus(roomId, username, data.typing);
+        break;
     }
   });
 
@@ -244,6 +248,32 @@ wss.on('connection', (ws, req) => {
     handleUserLeave(ws, roomId, username);
   });
 });
+
+function handleTypingStatus(roomId, username, isTyping) {
+  if (chatrooms.has(roomId)) {
+      const room = chatrooms.get(roomId);
+      if (isTyping) {
+          room.typingUsers = room.typingUsers || new Set();
+          room.typingUsers.add(username);
+      } else {
+          if (room.typingUsers) {
+              room.typingUsers.delete(username);
+          }
+      }
+      broadcastTypingStatus(roomId);
+  }
+}
+
+function broadcastTypingStatus(roomId) {
+  if (chatrooms.has(roomId)) {
+      const room = chatrooms.get(roomId);
+      const typingUsers = Array.from(room.typingUsers || []);
+      broadcastToRoom(roomId, {
+          type: 'typingUpdate',
+          typingUsers: typingUsers
+      });
+  }
+}
 
 function setNewHost(room, ws, username) {
   room.host = ws;

@@ -8,14 +8,63 @@ const usersList = document.getElementById('users-list');
 const roomNameElement = document.getElementById('room-name');
 const editRoomNameBtn = document.getElementById('edit-room-name-btn');
 const fileUpload = document.getElementById('file-upload');
+const searchInput = document.getElementById('search-input');
+const searchButton = document.getElementById('search-button');
+const searchResults = document.getElementById('search-results');
 
 let username;
 let ws;
 let isHost = false;
 let currentHost;
 
+let typingTimeout;
+let isTyping = false;
+
 function init() {
     connectWithUsername();
+}
+
+function sendTypingStatus(typing) {
+    ws.send(JSON.stringify({
+        type: 'typing',
+        typing: typing,
+        username: username
+    }));
+}
+
+messageInput.addEventListener('input', () => {
+    if (!isTyping) {
+        isTyping = true;
+        sendTypingStatus(true);
+    }
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        isTyping = false;
+        sendTypingStatus(false);
+    }, 3000);
+});
+
+// Add this function to update the typing indicator
+function updateTypingIndicator(typingUsers) {
+    const typingIndicator = document.getElementById('typing-indicator');
+    if (typingUsers.length === 0) {
+        typingIndicator.style.display = 'none';
+        return;
+    }
+
+    let message = '';
+    if (typingUsers.length === 1) {
+        message = `${typingUsers[0]} is typing...`;
+    } else if (typingUsers.length === 2) {
+        message = `${typingUsers[0]} and ${typingUsers[1]} are typing...`;
+    } else if (typingUsers.length === 3) {
+        message = `${typingUsers[0]}, ${typingUsers[1]}, and ${typingUsers[2]} are typing...`;
+    } else {
+        message = `${typingUsers.length} people are typing...`;
+    }
+
+    typingIndicator.textContent = message;
+    typingIndicator.style.display = 'block';
 }
 
 function connectWithUsername() {
@@ -88,6 +137,9 @@ function connectWithUsername() {
                 break;
             case 'updateBannedList':
                 updateBannedList(data.bannedList);
+                break;
+            case 'typingUpdate':
+                updateTypingIndicator(data.typingUsers);
                 break;
         }
     };
@@ -216,6 +268,10 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     const reactionsContainer = document.createElement('div');
     reactionsContainer.classList.add('reactions-container');
     messageElement.appendChild(reactionsContainer);
+
+    // Add timestamp to the message element
+    const timestamp = new Date().toISOString();
+    messageElement.dataset.timestamp = timestamp;
     
     messageElement.addEventListener('mouseover', () => {
         toolbar.style.display = 'flex';
@@ -234,6 +290,68 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     }
     messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
+
+function performSearch() {
+    const query = searchInput.value.trim().toLowerCase();
+    if (query === '') {
+        searchResults.style.display = 'none';
+        return;
+    }
+
+    const messages = Array.from(document.querySelectorAll('.message'));
+    const matchingMessages = messages.filter(message => {
+        const content = message.querySelector('.message-content').textContent.toLowerCase();
+        return content.includes(query);
+    });
+
+    displaySearchResults(matchingMessages, query);
+}
+
+function displaySearchResults(results, query) {
+    searchResults.innerHTML = '';
+    if (results.length === 0) {
+        searchResults.innerHTML = '<div class="search-result-item">No results found</div>';
+    } else {
+        results.forEach(message => {
+            const resultItem = document.createElement('div');
+            resultItem.classList.add('search-result-item');
+            
+            const username = message.querySelector('.username').textContent;
+            const content = message.querySelector('.message-content').textContent;
+            const timestamp = new Date(message.dataset.timestamp).toLocaleString();
+            const messageId = message.dataset.messageId;
+
+            resultItem.innerHTML = `
+                <span class="username">${username}</span>
+                <span class="timestamp">${timestamp}</span>
+                <div class="content">${highlightQuery(content, query)}</div>
+            `;
+
+            resultItem.addEventListener('click', () => {
+                scrollToMessage(messageId);
+                searchResults.style.display = 'none';
+            });
+
+            searchResults.appendChild(resultItem);
+        });
+    }
+    searchResults.style.display = 'block';
+}
+
+function highlightQuery(content, query) {
+    const regex = new RegExp(`(${query})`, 'gi');
+    return content.replace(regex, '<mark>$1</mark>');
+}
+
+searchInput.addEventListener('input', performSearch);
+searchButton.addEventListener('click', performSearch);
+
+// Close search results when clicking outside
+document.addEventListener('click', (event) => {
+    if (!searchResults.contains(event.target) && event.target !== searchInput && event.target !== searchButton) {
+        searchResults.style.display = 'none';
+    }
+});
 
 
 function updateUsersList(users, host) {

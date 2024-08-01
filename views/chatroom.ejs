@@ -15,11 +15,16 @@
     <div class="chat-container">
         <div class="titlebar">
             <h1><i class="fas fa-comments"></i> <span id="room-name">Alert Chatroom</span></h1>
+            <div class="search-container">
+                <input type="text" id="search-input" placeholder="Search messages...">
+                <button id="search-button"><i class="fas fa-search"></i></button>
+            </div>
             <div>
                 <button id="edit-room-name-btn" style="display: none;"><i class="fas fa-edit"></i> Edit Room Name</button>
                 <button id="leave-btn"><i class="fas fa-sign-out-alt"></i> Leave</button>
             </div>
         </div>
+        <div id="search-results" class="search-results" style="display: none;"></div>
         <div class="chat-main">
             <div class="messages-container">
                 <div id="messages"></div>
@@ -34,6 +39,7 @@
                 <ul id="banned-list"></ul>
             </div>
         </div>
+        <div id="typing-indicator" style="display: none;"></div>
         <form id="message-form">
             <textarea id="message-input" placeholder="Type your message..." required></textarea>
             <label for="file-upload" class="file-upload-label">
