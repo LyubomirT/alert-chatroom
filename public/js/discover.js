@@ -4,23 +4,61 @@ document.addEventListener('DOMContentLoaded', () => {
     const randomBtn = document.getElementById('random-btn');
     const roomsContainer = document.getElementById('rooms-container');
 
-    searchBtn.addEventListener('click', performSearch);
+    let currentPage = 0;
+    let hasMore = true;
+    let isLoading = false;
+    let currentQuery = '';
+
+    searchBtn.addEventListener('click', () => {
+        currentQuery = searchInput.value.trim();
+        currentPage = 0;
+        hasMore = true;
+        roomsContainer.innerHTML = '';
+        loadRooms();
+    });
+
     searchInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
-            performSearch();
+            searchBtn.click();
         }
     });
 
     randomBtn.addEventListener('click', joinRandomRoom);
 
-    function performSearch() {
-        const query = searchInput.value.trim();
-        if (query) {
-            fetch(`/api/search-rooms?q=${encodeURIComponent(query)}`)
-                .then(response => response.json())
-                .then(rooms => displayRooms(rooms))
-                .catch(error => console.error('Error:', error));
+    function loadRooms() {
+        if (isLoading || !hasMore) return;
+        isLoading = true;
+
+        fetch(`/api/search-rooms?q=${encodeURIComponent(currentQuery)}&page=${currentPage}`)
+            .then(response => response.json())
+            .then(data => {
+                displayRooms(data.rooms);
+                hasMore = data.hasMore;
+                currentPage++;
+                isLoading = false;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                isLoading = false;
+            });
+    }
+
+    function displayRooms(rooms) {
+        if (rooms.length === 0 && currentPage === 0) {
+            roomsContainer.innerHTML = '<p>No rooms found.</p>';
+            return;
         }
+
+        rooms.forEach(room => {
+            const roomCard = document.createElement('div');
+            roomCard.className = 'room-card';
+            roomCard.innerHTML = `
+                <h3>${room.name}</h3>
+                <p><i class="fas fa-users"></i> ${room.userCount} users</p>
+                <a href="/room/${room.id}" class="join-btn">Join</a>
+            `;
+            roomsContainer.appendChild(roomCard);
+        });
     }
 
     function joinRandomRoom() {
@@ -36,21 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(error => console.error('Error:', error));
     }
 
-    function displayRooms(rooms) {
-        roomsContainer.innerHTML = '';
-        if (rooms.length === 0) {
-            roomsContainer.innerHTML = '<p>No rooms found.</p>';
-            return;
+    // Infinite scroll
+    window.addEventListener('scroll', () => {
+        if (window.innerHeight + window.scrollY >= document.body.offsetHeight - 100) {
+            loadRooms();
         }
-        rooms.forEach(room => {
-            const roomCard = document.createElement('div');
-            roomCard.className = 'room-card';
-            roomCard.innerHTML = `
-                <h3>${room.name}</h3>
-                <p><i class="fas fa-users"></i> ${room.userCount} users</p>
-                <a href="/room/${room.id}" class="join-btn">Join</a>
-            `;
-            roomsContainer.appendChild(roomCard);
-        });
-    }
+    });
+
+    // Initial load
+    loadRooms();
 });

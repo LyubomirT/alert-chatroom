@@ -58,9 +58,11 @@ app.get('/discover', (req, res) => {
   res.render('discover', { rooms: discoverableRooms });
 });
 
-// New: Search rooms
 app.get('/api/search-rooms', (req, res) => {
-  const query = req.query.q.toLowerCase();
+  const query = req.query.q ? req.query.q.toLowerCase() : '';
+  const page = parseInt(req.query.page) || 0;
+  const pageSize = 10;
+
   const matchingRooms = Array.from(chatrooms.entries())
     .filter(([_, room]) => room.discoverable && room.name.toLowerCase().includes(query))
     .map(([id, room]) => ({
@@ -68,7 +70,15 @@ app.get('/api/search-rooms', (req, res) => {
       name: room.name,
       userCount: room.users.size
     }));
-  res.json(matchingRooms);
+
+  const startIndex = page * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedRooms = matchingRooms.slice(startIndex, endIndex);
+
+  res.json({
+    rooms: paginatedRooms,
+    hasMore: endIndex < matchingRooms.length
+  });
 });
 
 // New: Get random room
@@ -90,6 +100,25 @@ app.post('/join-room', (req, res) => {
     res.redirect(`/room/${roomId}`);
   } else {
     res.status(404).render('404');
+  }
+});
+
+app.get('/api/messages/:roomId', (req, res) => {
+  const roomId = req.params.roomId;
+  const page = parseInt(req.query.page) || 0;
+  const pageSize = 20;
+
+  if (chatrooms.has(roomId)) {
+    const room = chatrooms.get(roomId);
+    const startIndex = room.messages.length - (page + 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const messages = room.messages.slice(Math.max(0, startIndex), endIndex);
+    res.json({
+      messages: messages.reverse(),
+      hasMore: startIndex > 0
+    });
+  } else {
+    res.status(404).json({ error: 'Room not found' });
   }
 });
 

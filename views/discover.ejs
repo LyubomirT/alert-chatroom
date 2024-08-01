@@ -21,14 +21,9 @@
             </section>
             <section class="rooms-list">
                 <h2>Available Rooms</h2>
-                <div id="rooms-container">
-                    <% rooms.forEach(function(room) { %>
-                        <div class="room-card">
-                            <h3><%= room.name %></h3>
-                            <p><i class="fas fa-users"></i> <%= room.userCount %> users</p>
-                            <a href="/room/<%= room.id %>" class="join-btn">Join</a>
-                        </div>
-                    <% }); %>
+                <div id="rooms-container"></div>
+                <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading more rooms...
                 </div>
             </section>
         </main>

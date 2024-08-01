@@ -21,6 +21,33 @@ let currentHost;
 let typingTimeout;
 let isTyping = false;
 
+let currentPage = 0;
+let hasMore = true;
+let isLoading = false;
+
+function loadMessages() {
+  if (isLoading || !hasMore) return;
+  isLoading = true;
+
+  fetch(`/api/messages/${roomId}?page=${currentPage}`)
+    .then(response => response.json())
+    .then(data => {
+      const messages = data.messages;
+      hasMore = data.hasMore;
+
+      messages.forEach(msg => {
+        addMessage(msg.sender, msg.content, msg.isFile, msg.fileName, msg.messageId, msg.replyTo, msg.reactions, true);
+      });
+
+      currentPage++;
+      isLoading = false;
+    })
+    .catch(error => {
+      console.error('Error loading messages:', error);
+      isLoading = false;
+    });
+}
+
 function init() {
     connectWithUsername();
 }
@@ -156,7 +183,7 @@ function connectWithUsername() {
     };
 }
 
-function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null, reactions = null) {
+function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null, reactions = null, prepend = false) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === username ? 'sent' : 'received');
@@ -287,15 +314,18 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     messageElement.addEventListener('mouseout', () => {
         toolbar.style.display = 'none';
     });
-    
-    messagesContainer.appendChild(messageElement);
 
     // If there are initial reactions, display them
     console.log(reactions);
     if (reactions) {
         updateReactions(messageId, reactions);
     }
-    messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    if (prepend) {
+        messagesContainer.prepend(messageElement);
+    } else {
+        messagesContainer.appendChild(messageElement);
+        messagesContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
 }
 
 function performSearch() {
@@ -671,5 +701,15 @@ toggleDiscoverabilityBtn.addEventListener('click', () => {
         discoverable: !isDiscoverable
     }));
 });
+
+// Add scroll event listener to load more messages
+messagesContainer.addEventListener('scroll', () => {
+    if (messagesContainer.scrollTop === 0) {
+        loadMessages();
+    }
+});
+
+// Initial load of messages
+loadMessages();
 
 init();
