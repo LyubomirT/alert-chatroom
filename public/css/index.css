@@ -36,7 +36,7 @@ main {
     margin: 2rem 0;
 }
 
-.create-room, .features {
+.create-room, .features, .join-room, .discover-rooms {
     background-color: #fff;
     border-radius: 8px;
     padding: 2rem;
@@ -120,8 +120,9 @@ footer {
         flex-direction: column;
     }
 
-    .create-room, .features {
+    .create-room, .features, .join-room, .discover-rooms {
         width: 100%;
         margin-bottom: 2rem;
     }
 }
+

@@ -39,6 +39,22 @@
                 </ul>
             </section>
         </main>
+        <main>
+            <section class="join-room">
+                <h2>Or use an invite link</h2>
+                <form action="/join-room" method="POST">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label for="inviteLink">Invite Link</label>
+                        <input type="text" id="inviteLink" name="inviteLink" placeholder="Enter Invite Link" required>
+                    </div>
+                    <button type="submit" class="btn-primary">Join Chatroom</button>
+                </form>
+            </section>
+            <section class="discover-rooms">
+                <h2>Discover Chatrooms</h2>
+                <a href="/discover" class="btn-secondary">Discover Chatrooms</a>
+            </section>
+        </main>
         <footer>
             <p>&copy; 2024 Alert. All rights reserved.</p>
         </footer>

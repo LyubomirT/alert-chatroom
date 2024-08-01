@@ -83,6 +83,16 @@ app.get('/api/random-room', (req, res) => {
   }
 });
 
+app.post('/join-room', (req, res) => {
+  const link = req.body.inviteLink;
+  const roomId = link.substring(link.lastIndexOf('/') + 1);
+  if (chatrooms.has(roomId)) {
+    res.redirect(`/room/${roomId}`);
+  } else {
+    res.status(404).render('404');
+  }
+});
+
 wss.on('connection', (ws, req) => {
   let roomId;
   let username;

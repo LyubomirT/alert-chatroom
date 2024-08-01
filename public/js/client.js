@@ -146,7 +146,7 @@ function connectWithUsername() {
                 updateTypingIndicator(data.typingUsers);
                 break;
             case 'discoverabilityUpdate':
-                toggleDiscoverabilityBtn.textContent = data.discoverable ? 'Make Private' : 'Make Discoverable';
+                toggleDiscoverabilityBtn.innerHTML = data.discoverable ? '<i class="fas fa-eye-slash"></i> Make Private' : '<i class="fas fa-eye"></i> Make Discoverable';
                 break;
         }
     };
@@ -665,9 +665,10 @@ toggleInviteLinkBtn.addEventListener('click', () => {
 });
 
 toggleDiscoverabilityBtn.addEventListener('click', () => {
+    var isDiscoverable = toggleDiscoverabilityBtn.innerHTML.includes('slash');
     ws.send(JSON.stringify({
         type: 'toggleDiscoverability',
-        discoverable: toggleDiscoverabilityBtn.textContent === 'Make Discoverable'
+        discoverable: !isDiscoverable
     }));
 });
 
