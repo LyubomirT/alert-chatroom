@@ -134,3 +134,52 @@ footer {
         margin-top: 1rem;
     }
 }
+
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode header {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode .search-section {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode #search-input {
+    background-color: #333;
+    color: #e0e0e0;
+    border-color: #555;
+}
+
+body.dark-mode #search-btn, 
+body.dark-mode #random-btn {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+body.dark-mode #search-btn:hover, 
+body.dark-mode #random-btn:hover {
+    background-color: #555;
+}
+
+body.dark-mode .room-card {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+body.dark-mode .room-card h3 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .join-btn {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+body.dark-mode .join-btn:hover {
+    background-color: #555;
+}

@@ -127,3 +127,44 @@ footer {
     }
 }
 
+/* Dark Mode */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode header {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode footer {
+    background-color: #1e1e1e;
+}
+
+body.dark-mode .create-room,
+body.dark-mode .features,
+body.dark-mode .join-room,
+body.dark-mode .discover-rooms {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode h2 {
+    color: #e0e0e0;
+}
+
+body.dark-mode .btn-primary {
+    background-color: #333;
+    color: #e0e0e0;
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: #555;
+}
+
+body.dark-mode .features i {
+    color: #e0e0e0;
+}
+
+
