@@ -14,7 +14,7 @@
 
 ## What's Alert? 🤔
 
-Alert is a cool, peer-to-peer chatroom application that lets you create and manage chatrooms right from your local PC and share them with the world! It's like having your own little corner of the internet where you can chat with friends, family, or anyone who's interested.
+Alert is a chatroom application that lets you create and manage chatrooms right from your PC and share them with the world! It's like having your own little corner of the internet where you can chat with friends, family, or anyone who's interested.
 
 ## Features 🌟
 
