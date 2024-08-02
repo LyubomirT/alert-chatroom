@@ -85,17 +85,11 @@ body {
     overflow-y: auto;
 }
 
-.jump {
-    padding-block: 1px;
-    padding-inline: 6px;
-    margin-left: 10px;
-}
-
 .unpin {
     display: inline-block;
     text-decoration: underline;
     cursor: pointer;
-    margin: 0 5px 0 5px;
+    margin: 0 5px 0 10px;
 }
 
 .sidebar {
