@@ -598,17 +598,13 @@ function addToPinnedList(messageId, content, sender){
     messageTextElement.querySelectorAll('a').forEach(a => {
         a.target = '_blank';
     });
+    contentElement.setAttribute("style", "cursor: pointer;")
+    contentElement.onclick = () => scrollToMessage(messageId);
     contentElement.appendChild(messageTextElement);
     
     const usernameElement = document.createElement('span');
     usernameElement.classList.add('username');
     usernameElement.textContent = sender;
-
-    const jumpBtn = document.createElement('button');
-    jumpBtn.classList.add("jump")
-    jumpBtn.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
-    jumpBtn.onclick = () => scrollToMessage(messageId);
-    usernameElement.appendChild(jumpBtn);
 
     if(isHost){
         const unpinBtn = document.createElement('p');
