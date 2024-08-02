@@ -29,6 +29,7 @@ app.post('/create-room', (req, res) => {
     name: req.body.roomName,
     showPastMessages: req.body.showPastMessages === 'on',
     messages: [],
+    pinnedMessages: new Map(),
     hostTimeout: null,
     deletionTimeout: null,
     bannedIPs: new Set(),
@@ -250,6 +251,46 @@ wss.on('connection', (ws, req) => {
               });
             }
           }
+        }
+        break;
+
+      case 'pin':
+        if (chatrooms.has(roomId)) {
+            if(!(chatrooms.get(roomId).pinnedMessages.has(data.id))){
+                const pinnedMessageData = {
+                    type: 'addPin',
+                    messageId: data.id,
+                    content: data.content,
+                    sender: data.sender,
+                    isFile: data.isFile || false,
+                    fileName: data.fileName || null,
+                };
+                chatrooms.get(roomId).pinnedMessages.set(data.id, pinnedMessageData);
+                broadcastToRoom(roomId, pinnedMessageData);
+            }
+        } else {
+            ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Room not found'
+            }));
+        }
+        break;
+
+      case 'unpin':
+        if (chatrooms.has(roomId)) {
+            if(chatrooms.get(roomId).pinnedMessages.has(data.id)){
+                chatrooms.get(roomId).pinnedMessages.delete(data.id);
+                const pinnedMessageData = {
+                  type: 'removePin',
+                  messageId: data.id,
+                };
+                broadcastToRoom(roomId, pinnedMessageData);
+            }
+        } else {
+            ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Room not found'
+            }));
         }
         break;
 
