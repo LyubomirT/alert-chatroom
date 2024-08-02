@@ -1,4 +1,5 @@
 const messagesContainer = document.getElementById('messages');
+const pinnedMessageContainer = document.getElementById('pinned-messages');
 const messageForm = document.getElementById('message-form');
 const messageInput = document.getElementById('message-input');
 const inviteLink = document.getElementById('invite-link');
@@ -12,6 +13,7 @@ const searchInput = document.getElementById('search-input');
 const searchButton = document.getElementById('search-button');
 const searchResults = document.getElementById('search-results');
 const toggleDiscoverabilityBtn = document.getElementById('toggle-discoverability');
+const collapsePinsBtn = document.querySelector(".collapse-pins");
 
 let username;
 let ws;
@@ -161,6 +163,15 @@ function connectWithUsername() {
             case 'updateReactions':
                 updateReactions(data.messageId, data.reactions);
                 break;
+            case 'addPin':
+                addToPinnedList(data.messageId, data.content, data.sender)
+                break;
+            case 'removePin':
+                const pin = document.querySelector(`.pin[data-message-id="${data.messageId}"]`);
+                if (pin) {
+                    pin.remove();
+                }
+                break;
             case 'banPrompt':
                 if (confirm(`Do you want to ban ${data.username} (${data.ip}) from this room?`)) {
                     banUser(data.username, data.ip);
@@ -288,6 +299,13 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     reactButton.innerHTML = '<i class="fas fa-smile"></i>';
     reactButton.onclick = (event) => showEmojiPicker(event, messageId);
     toolbar.appendChild(reactButton);
+    
+    if(isHost && sender !== 'System' && !isFile){
+        const pinButton = document.createElement('button');
+        pinButton.innerHTML = '<i class="fa-solid fa-thumbtack"></i>';
+        pinButton.onclick = () => pinMessage(messageId, content, sender);
+        toolbar.appendChild(pinButton);
+    }
     
     if (sender === username || isHost) {
         const deleteButton = document.createElement('button');
@@ -556,6 +574,61 @@ function cancelReply() {
     }
 }
 
+function pinMessage(messageId, content, sender) {
+    if(confirm("Are you sure you want to pin this message?")){
+        ws.send(JSON.stringify({
+            type: 'pin',
+            id: messageId,
+            content,
+            sender
+        }));
+    }
+}
+
+function addToPinnedList(messageId, content, sender){
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('pin');
+    messageElement.dataset.messageId = messageId;
+    messageElement.setAttribute("style", "margin-top: 20px;")
+
+    const contentElement = document.createElement('div');
+    contentElement.classList.add('message-content');
+    const messageTextElement = document.createElement('div');
+    messageTextElement.innerHTML = marked.parse(content);
+    messageTextElement.querySelectorAll('a').forEach(a => {
+        a.target = '_blank';
+    });
+    contentElement.appendChild(messageTextElement);
+    
+    const usernameElement = document.createElement('span');
+    usernameElement.classList.add('username');
+    usernameElement.textContent = sender;
+
+    const jumpBtn = document.createElement('button');
+    jumpBtn.classList.add("jump")
+    jumpBtn.innerHTML = '<i class="fa-solid fa-arrow-up"></i>';
+    jumpBtn.onclick = () => scrollToMessage(messageId);
+    usernameElement.appendChild(jumpBtn);
+
+    if(isHost){
+        const unpinBtn = document.createElement('p');
+        unpinBtn.classList.add("unpin")
+        unpinBtn.innerHTML = 'Unpin';
+        unpinBtn.onclick = () => {
+            ws.send(JSON.stringify({
+                type: 'unpin',
+                id: messageId,
+            }));
+        }
+        usernameElement.appendChild(unpinBtn);
+    }
+
+    messageElement.appendChild(usernameElement);
+    messageElement.appendChild(contentElement);
+
+    pinnedMessageContainer.appendChild(messageElement);
+}
+
 function scrollToMessage(messageId) {
     const message = document.querySelector(`.message[data-message-id="${messageId}"]`);
     if (message) {
@@ -708,6 +781,13 @@ messagesContainer.addEventListener('scroll', () => {
         loadMessages();
     }
 });
+
+collapsePinsBtn.addEventListener('click', () => {
+    let pinned = document.querySelector(".pinned-messages");
+    collapsePinsBtn.classList.toggle("flipped-btn")
+    pinned.classList.toggle("collapsed")
+    pinned.classList.toggle("expanded")
+})
 
 // Initial load of messages
 loadMessages();
