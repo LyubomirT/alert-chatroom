@@ -1,3 +1,5 @@
+import Darkmode from 'darkmode-js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('search-input');
     const searchBtn = document.getElementById('search-btn');
@@ -68,10 +70,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (room.id) {
                     window.location.href = `/room/${room.id}`;
                 } else {
-                    alert('No discoverable rooms available. Try again later.');
+                    // Replace alert with a more user-friendly notification method
+                    showNotification('No discoverable rooms available. Try again later.');
                 }
             })
             .catch(error => console.error('Error:', error));
+    }
+
+    // New function to handle notifications
+    function showNotification(message) {
+        const notification = document.createElement('div');
+        notification.className = 'notification';
+        notification.innerText = message;
+        document.body.appendChild(notification);
+        setTimeout(() => notification.remove(), 3000); // Remove after 3 seconds
     }
 
     // Infinite scroll
@@ -84,3 +96,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial load
     loadRooms();
 });
+
+new Darkmode().showWidget();
