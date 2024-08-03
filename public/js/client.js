@@ -635,6 +635,7 @@ messageInput.addEventListener('keydown', (e) => {
 });
 
 messageForm.addEventListener('submit', (e) => {
+    e.cancelable = true;
     e.preventDefault();
     const message = messageInput.value.trim();
     if (message) {
