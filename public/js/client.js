@@ -320,13 +320,6 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
         toolbar.appendChild(pinButton);
     }
     
-    if(isHost && sender !== 'System' && !isFile){
-        const pinButton = document.createElement('button');
-        pinButton.innerHTML = '<i class="fa-solid fa-thumbtack"></i>';
-        pinButton.onclick = () => pinMessage(messageId, content, sender);
-        toolbar.appendChild(pinButton);
-    }
-    
     if (sender === username || isHost) {
         const deleteButton = document.createElement('button');
         deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
@@ -592,57 +585,6 @@ function cancelReply() {
     if (replyPreview) {
         replyPreview.remove();
     }
-}
-
-function pinMessage(messageId, content, sender) {
-    if(confirm("Are you sure you want to pin this message?")){
-        ws.send(JSON.stringify({
-            type: 'pin',
-            id: messageId,
-            content,
-            sender
-        }));
-    }
-}
-
-function addToPinnedList(messageId, content, sender){
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('pin');
-    messageElement.dataset.messageId = messageId;
-    messageElement.setAttribute("style", "margin-top: 20px;")
-
-    const contentElement = document.createElement('div');
-    contentElement.classList.add('message-content');
-    const messageTextElement = document.createElement('div');
-    messageTextElement.innerHTML = marked.parse(content);
-    messageTextElement.querySelectorAll('a').forEach(a => {
-        a.target = '_blank';
-    });
-    contentElement.setAttribute("style", "cursor: pointer;")
-    contentElement.onclick = () => scrollToMessage(messageId);
-    contentElement.appendChild(messageTextElement);
-    
-    const usernameElement = document.createElement('span');
-    usernameElement.classList.add('username');
-    usernameElement.textContent = sender;
-
-    if(isHost){
-        const unpinBtn = document.createElement('button');
-        unpinBtn.classList.add("unpin")
-        unpinBtn.innerHTML = 'Unpin';
-        unpinBtn.onclick = () => {
-            ws.send(JSON.stringify({
-                type: 'unpin',
-                id: messageId,
-            }));
-        }
-        usernameElement.appendChild(unpinBtn);
-    }
-
-    messageElement.appendChild(usernameElement);
-    messageElement.appendChild(contentElement);
-
-    pinnedMessageContainer.appendChild(messageElement);
 }
 
 function pinMessage(messageId, content, sender) {
