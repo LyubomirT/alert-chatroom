@@ -103,22 +103,30 @@ app.post('/join-room', (req, res) => {
   }
 });
 
+// Modify the GET /api/messages/:roomId route
 app.get('/api/messages/:roomId', (req, res) => {
   const roomId = req.params.roomId;
   const page = parseInt(req.query.page) || 0;
   const pageSize = 20;
 
   if (chatrooms.has(roomId)) {
-    const room = chatrooms.get(roomId);
-    const startIndex = room.messages.length - (page + 1) * pageSize;
-    const endIndex = startIndex + pageSize;
-    const messages = room.messages.slice(Math.max(0, startIndex), endIndex);
-    res.json({
-      messages: messages.reverse(),
-      hasMore: startIndex > 0
-    });
+      const room = chatrooms.get(roomId);
+      if (room.showPastMessages) {
+          const startIndex = room.messages.length - (page + 1) * pageSize;
+          const endIndex = startIndex + pageSize;
+          const messages = room.messages.slice(Math.max(0, startIndex), endIndex);
+          res.json({
+              messages: messages.reverse(),
+              hasMore: startIndex > 0
+          });
+      } else {
+          res.json({
+              messages: [],
+              hasMore: false
+          });
+      }
   } else {
-    res.status(404).json({ error: 'Room not found' });
+      res.status(404).json({ error: 'Room not found' });
   }
 });
 
@@ -136,73 +144,68 @@ wss.on('connection', (ws, req) => {
         username = data.username;
 
         if (chatrooms.has(roomId)) {
-          const room = chatrooms.get(roomId);
-          
-          // Check if IP is banned
-          if (room.bannedIPs.has(clientIP)) {
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: 'You are banned from this room'
-            }));
-            ws.close();
-            return;
-          }
+            const room = chatrooms.get(roomId);
+            
+            // Check if IP is banned
+            if (room.bannedIPs.has(clientIP)) {
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    message: 'You are banned from this room'
+                }));
+                ws.close();
+                return;
+            }
 
-          // Clear deletion timeout if it exists
-          if (room.deletionTimeout) {
-            clearTimeout(room.deletionTimeout);
-            room.deletionTimeout = null;
-          }
+            // Clear deletion timeout if it exists
+            if (room.deletionTimeout) {
+                clearTimeout(room.deletionTimeout);
+                room.deletionTimeout = null;
+            }
 
-          // Check if username already exists
-          if (Array.from(room.users.values()).includes(username)) {
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: 'Username already taken'
-            }));
-            return;
-          }
-          
-          room.users.set(ws, username);
-          
-          if (!room.host) {
-            setNewHost(room, ws, username);
-          } else if (username === room.hostUsername && room.hostTimeout) {
-            clearTimeout(room.hostTimeout);
-            room.hostTimeout = null;
-            setNewHost(room, ws, username);
-          }
+            // Check if username already exists
+            if (Array.from(room.users.values()).includes(username)) {
+                ws.send(JSON.stringify({
+                    type: 'error',
+                    message: 'Username already taken'
+                }));
+                return;
+            }
+            
+            room.users.set(ws, username);
+            
+            if (!room.host) {
+                setNewHost(room, ws, username);
+            } else if (username === room.hostUsername && room.hostTimeout) {
+                clearTimeout(room.hostTimeout);
+                room.hostTimeout = null;
+                setNewHost(room, ws, username);
+            }
 
-          broadcastToRoom(roomId, {
-            type: 'message',
-            content: `${username} has joined the chat`,
-            sender: 'System'
-          });
-          updateUsersList(roomId);
-          ws.send(JSON.stringify({ 
-            type: 'roomName', 
-            name: room.name,
-            host: room.hostUsername
-          }));
-
-          if (room.showPastMessages) {
-            room.messages.forEach(msg => {
-              ws.send(JSON.stringify(msg));
+            broadcastToRoom(roomId, {
+                type: 'message',
+                content: `${username} has joined the chat`,
+                sender: 'System'
             });
-          }
-
-          // Send banned list to host
-          if (room.host === ws) {
-            ws.send(JSON.stringify({
-              type: 'updateBannedList',
-              bannedList: Array.from(room.bannedIPs).map(ip => ({ ip, username: '' }))
+            updateUsersList(roomId);
+            ws.send(JSON.stringify({ 
+                type: 'roomName', 
+                name: room.name,
+                host: room.hostUsername,
+                showPastMessages: room.showPastMessages
             }));
-          }
+
+            // Send banned list to host
+            if (room.host === ws) {
+                ws.send(JSON.stringify({
+                    type: 'updateBannedList',
+                    bannedList: Array.from(room.bannedIPs).map(ip => ({ ip, username: '' }))
+                }));
+            }
         } else {
-          ws.send(JSON.stringify({
-            type: 'error',
-            message: 'Room not found'
-          }));
+            ws.send(JSON.stringify({
+                type: 'error',
+                message: 'Room not found'
+            }));
         }
         break;
 
