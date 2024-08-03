@@ -607,7 +607,7 @@ function addToPinnedList(messageId, content, sender){
     usernameElement.textContent = sender;
 
     if(isHost){
-        const unpinBtn = document.createElement('p');
+        const unpinBtn = document.createElement('button');
         unpinBtn.classList.add("unpin")
         unpinBtn.innerHTML = 'Unpin';
         unpinBtn.onclick = () => {

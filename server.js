@@ -192,6 +192,12 @@ wss.on('connection', (ws, req) => {
             });
           }
 
+          if (room.showPastMessages) {
+            for (let pin of room.pinnedMessages.values()) {
+              ws.send(JSON.stringify(pin));
+            }
+          }
+
           // Send banned list to host
           if (room.host === ws) {
             ws.send(JSON.stringify({
@@ -263,6 +269,11 @@ wss.on('connection', (ws, req) => {
                     fileName: data.fileName || null,
                 };
                 chatrooms.get(roomId).pinnedMessages.set(data.id, pinnedMessageData);
+                broadcastToRoom(roomId, {
+                  type: 'message',
+                  content: `${username} pinned a message.`,
+                  sender: 'System'
+                });
                 broadcastToRoom(roomId, pinnedMessageData);
             }
         } else {
