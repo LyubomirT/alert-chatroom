@@ -25,27 +25,29 @@ let currentPage = 0;
 let hasMore = true;
 let isLoading = false;
 
+let showPastMessages = false;
+
 function loadMessages() {
-  if (isLoading || !hasMore) return;
-  isLoading = true;
+    if (isLoading || !hasMore || !showPastMessages) return;
+    isLoading = true;
 
-  fetch(`/api/messages/${roomId}?page=${currentPage}`)
-    .then(response => response.json())
-    .then(data => {
-      const messages = data.messages;
-      hasMore = data.hasMore;
+    fetch(`/api/messages/${roomId}?page=${currentPage}`)
+        .then(response => response.json())
+        .then(data => {
+            const messages = data.messages;
+            hasMore = data.hasMore;
 
-      messages.forEach(msg => {
-        addMessage(msg.sender, msg.content, msg.isFile, msg.fileName, msg.messageId, msg.replyTo, msg.reactions, true);
-      });
+            messages.forEach(msg => {
+                addMessage(msg.sender, msg.content, msg.isFile, msg.fileName, msg.messageId, msg.replyTo, msg.reactions, true);
+            });
 
-      currentPage++;
-      isLoading = false;
-    })
-    .catch(error => {
-      console.error('Error loading messages:', error);
-      isLoading = false;
-    });
+            currentPage++;
+            isLoading = false;
+        })
+        .catch(error => {
+            console.error('Error loading messages:', error);
+            isLoading = false;
+        });
 }
 
 function init() {
@@ -130,6 +132,10 @@ function connectWithUsername() {
             case 'roomName':
                 updateRoomName(data.name);
                 currentHost = data.host;
+                showPastMessages = data.showPastMessages;
+                if (showPastMessages) {
+                    loadMessages();
+                }
                 break;
             case 'host':
                 isHost = true;
@@ -716,8 +722,5 @@ messagesContainer.addEventListener('scroll', () => {
         loadMessages();
     }
 });
-
-// Initial load of messages
-loadMessages();
 
 init();
