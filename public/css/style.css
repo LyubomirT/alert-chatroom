@@ -87,9 +87,10 @@ body {
 
 .unpin {
     display: inline-block;
-    text-decoration: underline;
     cursor: pointer;
     margin: 0 5px 0 10px;
+    padding-block: 1px;
+    padding-inline: 6px;
 }
 
 .sidebar {
