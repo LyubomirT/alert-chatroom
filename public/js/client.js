@@ -179,8 +179,15 @@ function connectWithUsername() {
     };
 
     ws.onclose = () => {
+        // log why the connection was closed
+        console.log('Connection closed with code:', event.code, 'reason:', event.reason);
         alert('Connection closed. Please refresh the page.');
     };
+
+    ws.onerror = (error) => {
+        // log the error
+        console.error('WebSocket error:', error);
+    }
 }
 
 function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null, reactions = null, prepend = false) {
@@ -1003,11 +1010,12 @@ messageInput.addEventListener('input', resizeTextarea);
 messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
-        messageForm.dispatchEvent(new Event('submit'));
+        messageForm.dispatchEvent(new Event('submit', { cancelable: true }));
     }
 });
 
 messageForm.addEventListener('submit', (e) => {
+    e.cancelable = true;
     e.preventDefault();
     const message = messageInput.value.trim();
     if (message) {
