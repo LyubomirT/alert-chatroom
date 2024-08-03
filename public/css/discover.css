@@ -2,27 +2,30 @@ body {
     font-family: 'Roboto', sans-serif;
     line-height: 1.6;
     color: #333;
-    background-color: #f4f4f4;
+    background-color: #f4f4f4; /* Lighter background for better readability */
     margin: 0;
     padding: 0;
+    transition: background-color 0.3s ease; /* Enhanced animation for background color transition */
 }
 
 .container {
     max-width: 1100px;
     margin: 0 auto;
     padding: 0 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Added shadow for depth */
 }
 
 header {
-    background-color: #4a6fa5;
+    background-color: #4a6fa5; /* Modern blue color */
     color: #fff;
     text-align: center;
     padding: 2rem 0;
+    transition: background-color 0.3s ease; /* Enhanced animation for background color transition */
 }
 
 header h1 {
     margin-bottom: 0.5rem;
-    font-size: 2.5rem;
+    font-size: 2.5rem; /* Increased font size for better visibility */
 }
 
 main {
@@ -33,6 +36,7 @@ main {
     display: flex;
     justify-content: center;
     margin-bottom: 2rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Added shadow for depth */
 }
 
 #search-input {
@@ -41,15 +45,17 @@ main {
     font-size: 1rem;
     border: 1px solid #ddd;
     border-radius: 4px 0 0 4px;
+    transition: border-color 0.3s ease; /* Enhanced animation for border color transition */
 }
 
 #search-btn, #random-btn {
     padding: 0.5rem 1rem;
     font-size: 1rem;
     border: none;
-    background-color: #4a6fa5;
+    background-color: #4a6fa5; /* Modern blue color */
     color: #fff;
     cursor: pointer;
+    transition: background-color 0.3s ease; /* Enhanced animation for background color transition */
 }
 
 #search-btn {
@@ -62,11 +68,11 @@ main {
 }
 
 #search-btn:hover, #random-btn:hover {
-    background-color: #3a5a8c;
+    background-color: #3a5a8c; /* Enhanced hover effect */
 }
 
 .rooms-list h2 {
-    color: #4a6fa5;
+    color: #4a6fa5; /* Modern blue color */
     margin-bottom: 1.5rem;
 }
 
@@ -74,18 +80,20 @@ main {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1.5rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Added shadow for depth */
 }
 
 .room-card {
     background-color: #fff;
     border-radius: 8px;
     padding: 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Enhanced shadow for depth */
+    transition: transform 0.3s ease; /* Enhanced animation for transform */
 }
 
 .room-card h3 {
     margin-top: 0;
-    color: #4a6fa5;
+    color: #4a6fa5; /* Modern blue color */
 }
 
 .room-card p {
@@ -94,24 +102,25 @@ main {
 
 .join-btn {
     display: inline-block;
-    background-color: #4a6fa5;
+    background-color: #4a6fa5; /* Modern blue color */
     color: #fff;
     padding: 0.5rem 1rem;
     text-decoration: none;
     border-radius: 4px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease; /* Enhanced animation for background color transition */
 }
 
 .join-btn:hover {
-    background-color: #3a5a8c;
+    background-color: #3a5a8c; /* Enhanced hover effect */
 }
 
 footer {
     text-align: center;
     padding: 1rem 0;
-    background-color: #333;
+    background-color: #333; /* Dark background for contrast */
     color: #fff;
     margin-top: 2rem;
+    transition: background-color 0.3s ease; /* Enhanced animation for background color transition */
 }
 
 @media (max-width: 768px) {
