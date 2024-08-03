@@ -31,10 +31,6 @@ Alert is a chatroom application that lets you create and manage chatrooms right 
 
 You can try out Alert right now at [alertchat.jprq.app](https://alertchat.jprq.app)! Just hop on, create a room or join an existing one, and start chatting!
 
-## Warning: Issues on Firefox 🦊
-
-Alert uses WebSockets to power its real-time messaging capabilities. Unfortunately, Firefox has a known issue with WebSockets that prevents Alert from working properly on Firefox browsers. We recommend using Chrome or Edge for the best experience.
-
 ## Setting Up Locally 🛠️
 
 Want to run Alert on your own machine? No problem! Here's how:
