@@ -28,8 +28,15 @@
         </div>
         <div id="search-results" class="search-results" style="display: none;"></div>
         <div class="chat-main">
-            <div class="messages-container">
-                <div id="messages"></div>
+            <div class="flex-container">
+                <div id="pinned-messages-container" class="pinned-messages-container">
+                    <div> <p class="pin-header">Pinned Messages</p> <button class="collapse-pins"><i class="fa-solid fa-caret-down"></i></button></div>
+                    <div id="pinned-messages" class="pinned-messages collapsed"></div>
+                    
+                </div>
+                <div class="messages-container">
+                    <div id="messages"></div>
+                </div>
             </div>
             <div class="sidebar">
                 <h2><i class="fas fa-info-circle"></i> Room Info</h2>
