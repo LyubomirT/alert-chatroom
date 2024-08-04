@@ -569,6 +569,7 @@ button:hover {
     	background-color: #f8f9fa;
     	padding: 4px;
 	    overflow-y: auto;
+        height: 20vh;
     }
 }
 
@@ -591,7 +592,6 @@ button:hover {
     .sidebar {
         width: auto;
         order: 1;
-	height: 240px;
     }
 
     .flex-container {
