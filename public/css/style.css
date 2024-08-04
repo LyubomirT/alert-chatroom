@@ -542,3 +542,59 @@ button:hover {
     background-color: #f8f9fa;
     color: #6c757d;
 }
+
+@media (max-width: 940px){
+    
+    .titlebar {
+	    flex-direction: column;
+    }
+}
+
+@media (max-width: 660px){
+    
+    #search-button{
+        margin-left: 0;
+    }
+
+    .search-container, .titlebar h1{
+        margin-bottom: 10px;
+    }
+
+    .message-content p {
+	    margin: 0.1em 0;
+    }
+ 
+    .sidebar {
+    	width: 187px;
+    	background-color: #f8f9fa;
+    	padding: 4px;
+	    overflow-y: auto;
+    }
+}
+
+@media (max-width: 530px){
+    button {
+        padding: 5px 6px;
+    }
+}
+
+@media(max-width: 450px){
+    #room-options button span {
+        display: none;
+    }
+
+    .chat-main {
+	    display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar {
+        width: auto;
+        order: 1;
+    }
+
+    .flex-container {
+        order: 2;
+        height: 160px;
+    }
+}
