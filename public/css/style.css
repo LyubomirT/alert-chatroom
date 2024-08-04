@@ -591,6 +591,7 @@ button:hover {
     .sidebar {
         width: auto;
         order: 1;
+	height: 240px;
     }
 
     .flex-container {
