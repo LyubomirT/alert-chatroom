@@ -122,8 +122,13 @@ footer {
     }
 
     .create-room, .features, .join-room, .discover-rooms {
-        width: 100%;
+        width: auto;
         margin-bottom: 2rem;
     }
 }
 
+@media (max-width: 370px){
+    .container{
+        padding: 0;
+    }
+}
