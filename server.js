@@ -114,7 +114,7 @@ app.get('/api/messages/:roomId', (req, res) => {
       const room = chatrooms.get(roomId);
       if (room.showPastMessages) {
           const startIndex = room.messages.length - (page + 1) * pageSize;
-          const endIndex = startIndex + pageSize;
+          const endIndex = startIndex + pageSize - 1;
           const messages = room.messages.slice(Math.max(0, startIndex), endIndex);
           res.json({
               messages: messages.reverse(),
@@ -181,13 +181,17 @@ wss.on('connection', (ws, req) => {
                 room.hostTimeout = null;
                 setNewHost(room, ws, username);
             }
-
-            broadcastToRoom(roomId, {
+            const messageData = {
                 type: 'message',
+                messageId : uuidv4(),
                 content: `${username} has joined the chat`,
-                sender: 'System'
-            });
+                sender: 'System',
+                reactions: {}  // Initialize empty reactions object
+            }
             updateUsersList(roomId);
+            chatrooms.get(roomId).messages.push(messageData);
+            broadcastToRoom(roomId, messageData);
+
             ws.send(JSON.stringify({ 
                 type: 'roomName', 
                 name: room.name,
@@ -446,11 +450,14 @@ function handleUserLeave(ws, roomId, username) {
       if (room.users.size > 0) {
         const [newHost, newHostUsername] = room.users.entries().next().value;
         setNewHost(room, newHost, newHostUsername);
-        broadcastToRoom(roomId, {
-          type: 'message',
-          content: `${newHostUsername} is now the host.`,
-          sender: 'System'
-        });
+          const messageData = {
+              type: 'message',
+              messageId : uuidv4(),
+              content: `${newHostUsername} is now the host.`,
+              sender: 'System'
+          }
+        broadcastToRoom(roomId, messageData);
+          chatrooms.get(roomId).messages.push(messageData);
       } else {
         // If no users left, set a deletion timeout
         room.deletionTimeout = setTimeout(() => {
@@ -460,12 +467,15 @@ function handleUserLeave(ws, roomId, username) {
     }
 
     if (room.users.size > 0) {
-        broadcastToRoom(roomId, {
+        const messageData = {
             type: 'message',
+            messageId : uuidv4(),
             content: `${username} has left the chat`,
             sender: 'System'
-        });
+        }
         updateUsersList(roomId);
+        broadcastToRoom(roomId, messageData);
+        chatrooms.get(roomId).messages.push(messageData);
     }
 
     // Remove user's reactions from all messages
