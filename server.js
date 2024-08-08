@@ -224,6 +224,7 @@ wss.on('connection', (ws, req) => {
                 messageId: messageId,
                 content: data.content,
                 sender: username,
+                mentionedUsers: data.mentionedUsers,
                 isFile: data.isFile || false,
                 fileName: data.fileName || null,
                 replyTo: data.replyTo ? {

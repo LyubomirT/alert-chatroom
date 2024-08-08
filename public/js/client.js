@@ -14,6 +14,7 @@ const searchButton = document.getElementById('search-button');
 const searchResults = document.getElementById('search-results');
 const toggleDiscoverabilityBtn = document.getElementById('toggle-discoverability');
 const collapsePinsBtn = document.querySelector(".collapse-pins");
+const userPicker = document.getElementById("user-picker");
 
 let username;
 let ws;
@@ -40,7 +41,7 @@ function loadMessages() {
             hasMore = data.hasMore;
 
             messages.forEach(msg => {
-                addMessage(msg.sender, msg.content, msg.isFile, msg.fileName, msg.messageId, msg.replyTo, msg.reactions, true);
+                addMessage(msg.sender, msg.content, msg.isFile, msg.fileName, msg.messageId, msg.replyTo, msg.mentionedUsers, msg.reactions, true);
             });
 
             currentPage++;
@@ -126,7 +127,7 @@ function connectWithUsername() {
                 if (data.replyTo) {
                     console.log(data.replyTo);
                 }
-                addMessage(data.sender, data.content, data.isFile, data.fileName, data.messageId, data.replyTo, data.reactions);
+                addMessage(data.sender, data.content, data.isFile, data.fileName, data.messageId, data.replyTo, data.mentionedUsers, data.reactions);
                 break;
             case 'userList':
                 updateUsersList(data.users, data.host);
@@ -207,7 +208,7 @@ function connectWithUsername() {
     }
 }
 
-function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null, reactions = null, prepend = false) {
+function addMessage(sender, content, isFile = false, fileName = null, messageId = null, replyTo = null, mentionedUsers = null, reactions = null, prepend = false) {
     const messageElement = document.createElement('div');
     messageElement.classList.add('message');
     messageElement.classList.add(sender === username ? 'sent' : 'received');
@@ -231,6 +232,8 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
         replyElement.onclick = () => scrollToMessage(replyTo.messageId);
         contentElement.appendChild(replyElement);
     }
+
+    if(mentionedUsers?.includes(username))   messageElement.classList.add('mentioned')
     
     if (isFile) {
         if (content.startsWith('data:image')) {
@@ -359,6 +362,26 @@ function addMessage(sender, content, isFile = false, fileName = null, messageId 
     }
 }
 
+messageInput.addEventListener('input', () => {
+    if(messageInput.value.endsWith('@')){
+        userPicker.setAttribute('style', '')
+    }else{
+        userPicker.setAttribute('style', 'display: none;')
+    }
+})
+
+function addMention(username){
+    messageInput.value += `**${username}**`;
+    userPicker.setAttribute('style', 'display: none;')
+
+    if(messageInput.dataset.mentions){
+        const mentions = JSON.parse(messageInput.dataset.mentions)
+        mentions.push(username)
+        messageInput.dataset.mentions = JSON.stringify(mentions);
+    }
+    else    messageInput.dataset.mentions = JSON.stringify([username])
+}
+
 function performSearch() {
     const query = searchInput.value.trim().toLowerCase();
     if (query === '') {
@@ -425,6 +448,7 @@ document.addEventListener('click', (event) => {
 function updateUsersList(users, host) {
     if (users) {
         usersList.innerHTML = '';
+        userPicker.innerHTML = '';
         users.forEach(user => {
             const li = document.createElement('li');
             const indicator = document.createElement('span');
@@ -449,6 +473,16 @@ function updateUsersList(users, host) {
             }
             
             usersList.appendChild(li);
+
+            //---add to user picker---
+            const u = document.createElement('p');
+            u.innerHTML = user;
+            u.addEventListener("click", ()=>{
+                addMention(user);
+            })
+            userPicker.appendChild(u)
+
+
         });
     } else if (host) {
         const userItems = usersList.getElementsByTagName('li');
@@ -715,12 +749,16 @@ messageForm.addEventListener('submit', (e) => {
     const message = messageInput.value.trim();
     if (message) {
         const replyTo = messageInput.dataset.replyTo ? JSON.parse(messageInput.dataset.replyTo) : null;
+        const mentionedUsers = messageInput.dataset.mentions ? JSON.parse(messageInput.dataset.mentions) : null;
+        const filteredMentionedUsers = mentionedUsers.filter(mention=> message.includes(`@**${mention}**`))
         ws.send(JSON.stringify({
             type: 'message',
             content: message,
-            replyTo: replyTo
+            replyTo: replyTo,
+            mentionedUsers: filteredMentionedUsers
         }));
         messageInput.value = '';
+        messageInput.dataset.mentions = [];
         cancelReply();
         resizeTextarea();
     }
