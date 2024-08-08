@@ -295,7 +295,6 @@ body {
 .message.system-message {
     background-color: #fff7cd;
     align-items: center;
-    display: flex;
     justify-content: center;
     color: #333;
 }
