@@ -750,7 +750,7 @@ messageForm.addEventListener('submit', (e) => {
     if (message) {
         const replyTo = messageInput.dataset.replyTo ? JSON.parse(messageInput.dataset.replyTo) : null;
         const mentionedUsers = messageInput.dataset.mentions ? JSON.parse(messageInput.dataset.mentions) : null;
-        const filteredMentionedUsers = mentionedUsers.filter(mention=> message.includes(`@**${mention}**`))
+        const filteredMentionedUsers = mentionedUsers?.filter(mention=> message.includes(`@**${mention}**`))
         ws.send(JSON.stringify({
             type: 'message',
             content: message,
