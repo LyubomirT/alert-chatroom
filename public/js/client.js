@@ -373,6 +373,7 @@ messageInput.addEventListener('input', () => {
 function addMention(username){
     messageInput.value += `**${username}**`;
     userPicker.setAttribute('style', 'display: none;')
+    messageInput.focus();
 
     if(messageInput.dataset.mentions){
         const mentions = JSON.parse(messageInput.dataset.mentions)

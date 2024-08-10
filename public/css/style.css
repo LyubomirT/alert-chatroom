@@ -189,7 +189,7 @@ body {
 }
 
 .mentioned {
-    border: 2px solid blueviolet;
+    box-shadow: 0 0 15px #4a6fa5;
 }
 
 @keyframes highlightAnimation {
