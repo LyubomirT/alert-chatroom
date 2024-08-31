@@ -15,6 +15,13 @@ const searchResults = document.getElementById('search-results');
 const toggleDiscoverabilityBtn = document.getElementById('toggle-discoverability');
 const collapsePinsBtn = document.querySelector(".collapse-pins");
 const userPicker = document.getElementById("user-picker");
+const createPollBtn = document.getElementById('create-poll-btn');
+const pollModal = document.getElementById('poll-modal');
+const closeModal = document.querySelector('.close');
+const pollForm = document.getElementById('poll-form');
+const addOptionBtn = document.getElementById('add-option-btn');
+
+let polls = {};
 
 let username;
 let ws;
@@ -30,6 +37,7 @@ let isLoading = false;
 
 let showPastMessages = false;
 
+
 function loadMessages() {
     if (isLoading || !hasMore || !showPastMessages) return;
     isLoading = true;
@@ -38,10 +46,17 @@ function loadMessages() {
         .then(response => response.json())
         .then(data => {
             const messages = data.messages;
+            const loadedPolls = data.polls;
             hasMore = data.hasMore;
 
             messages.forEach(msg => {
                 addMessage(msg.sender, msg.content, msg.isFile, msg.fileName, msg.messageId, msg.replyTo, msg.mentionedUsers, msg.reactions, true);
+            });
+
+            // Load polls
+            Object.values(loadedPolls).forEach(pollData => {
+                polls[pollData.id] = pollData;
+                addPollToChat(pollData);
             });
 
             currentPage++;
@@ -52,9 +67,22 @@ function loadMessages() {
             isLoading = false;
         });
 }
+// Remove these lines
+function initializePollModal() {
+    pollModal.style.display = 'none';
+}
+
+window.onload = function() {
+    initializePollModal();
+}
 
 function init() {
-    connectWithUsername();
+    initializePollModal();
+    
+    // Delay the connectWithUsername call
+    setTimeout(() => {
+        connectWithUsername();
+    }, 100); // 100ms delay
 }
 
 function sendTypingStatus(typing) {
@@ -192,6 +220,12 @@ function connectWithUsername() {
                 break;
             case 'discoverabilityUpdate':
                 toggleDiscoverabilityBtn.innerHTML = data.discoverable ? '<i class="fas fa-eye-slash"></i> Make Private' : '<i class="fas fa-eye"></i> Make Discoverable';
+                break;     
+            case 'poll':
+                handlePollMessage(data);
+                break;
+            case 'voteUpdate':
+                handleVoteUpdate(data);
                 break;
         }
     };
@@ -836,6 +870,186 @@ collapsePinsBtn.addEventListener('click', () => {
     collapsePinsBtn.classList.toggle("flipped-btn")
     pinned.classList.toggle("collapsed")
     pinned.classList.toggle("expanded")
-})
+});
+
+createPollBtn.addEventListener('click', () => {
+    pollModal.style.display = 'flex';
+});
+
+closeModal.addEventListener('click', () => {
+    pollModal.style.display = 'none';
+});
+
+window.addEventListener('click', (event) => {
+    if (event.target === pollModal) {
+        pollModal.style.display = 'none';
+    }
+});
+
+addOptionBtn.addEventListener('click', () => {
+    const pollOptions = document.getElementById('poll-options');
+    const newOption = document.createElement('div');
+    newOption.className = 'poll-option-input';
+    newOption.innerHTML = `
+        <input type="text" class="poll-option" placeholder="Option ${pollOptions.children.length + 1}">
+        <button type="button" class="remove-option-btn"><i class="fas fa-times"></i></button>
+    `;
+    if (pollOptions.children.length < 12) {
+        pollOptions.appendChild(newOption);
+    }
+    if (pollOptions.children.length === 12) {
+        addOptionBtn.style.display = 'none';
+    }
+
+    const removeBtn = newOption.querySelector('.remove-option-btn');
+    removeBtn.addEventListener('click', () => {
+        pollOptions.removeChild(newOption);
+        addOptionBtn.style.display = 'inline-block';
+        updateOptionPlaceholders();
+    });
+});
+
+function updateOptionPlaceholders() {
+    const options = document.querySelectorAll('.poll-option');
+    options.forEach((option, index) => {
+        option.placeholder = `Option ${index + 1}`;
+    });
+}
+
+
+pollForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const title = document.getElementById('poll-title').value;
+    const description = document.getElementById('poll-description').value;
+    const options = Array.from(document.getElementsByClassName('poll-option'))
+        .map(input => input.value)
+        .filter(value => value.trim() !== '');
+    const multipleChoice = document.getElementById('multiple-choice').checked;
+
+    if (options.length < 2) {
+        alert('Please provide at least two options for the poll.');
+        return;
+    }
+
+    const pollId = Date.now().toString();
+    const pollData = {
+        id: pollId,
+        title,
+        description,
+        options,
+        multipleChoice,
+        votes: {},
+        creator: username
+    };
+
+    ws.send(JSON.stringify({
+        type: 'poll',
+        pollData
+    }));
+
+    pollModal.style.display = 'none';
+    pollForm.reset();
+    document.getElementById('poll-options').innerHTML = `
+        <div class="poll-option-input">
+            <input type="text" class="poll-option" placeholder="Option 1" required>
+        </div>
+        <div class="poll-option-input">
+            <input type="text" class="poll-option" placeholder="Option 2" required>
+        </div>
+    `;
+    addOptionBtn.style.display = 'inline-block';
+});
+
+function handlePollMessage(data) {
+    const { pollData } = data;
+    polls[pollData.id] = pollData;
+    addPollToChat(pollData);
+}
+
+function addPollToChat(pollData) {
+    const pollElement = document.createElement('div');
+    pollElement.className = 'message poll-message';
+    pollElement.innerHTML = `
+        <div class="poll-title">${pollData.title}</div>
+        <div class="poll-description">${pollData.description}</div>
+        <div class="poll-options"></div>
+        <div class="poll-results"></div>
+        <button id="vote-button-${pollData.id}" class="vote-button">Vote</button>
+    `;
+
+    const optionsContainer = pollElement.querySelector('.poll-options');
+    pollData.options.forEach((option, index) => {
+        const optionElement = document.createElement('div');
+        optionElement.className = 'poll-option';
+        optionElement.textContent = option;
+        optionElement.dataset.index = index;
+        optionElement.addEventListener('click', () => toggleOption(pollData.id, index, pollData.multipleChoice));
+        optionsContainer.appendChild(optionElement);
+    });
+
+    const voteButton = pollElement.querySelector(`#vote-button-${pollData.id}`);
+    voteButton.addEventListener('click', () => submitVote(pollData.id));
+
+    messagesContainer.appendChild(pollElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    updatePollResults(pollData.id);
+}
+
+function toggleOption(pollId, optionIndex, multipleChoice) {
+    const options = document.querySelectorAll(`.poll-message:has(#vote-button-${pollId}) .poll-option`);
+    if (!multipleChoice) {
+        options.forEach(option => option.classList.remove('selected'));
+    }
+    options[optionIndex].classList.toggle('selected');
+}
+
+function submitVote(pollId) {
+    const selectedOptions = Array.from(document.querySelectorAll(`.poll-message:has(#vote-button-${pollId}) .poll-option.selected`))
+        .map(option => parseInt(option.dataset.index));
+
+    if (selectedOptions.length === 0) {
+        alert('Please select an option before voting.');
+        return;
+    }
+
+    ws.send(JSON.stringify({
+        type: 'vote',
+        pollId,
+        votes: selectedOptions
+    }));
+}
+
+function handleVoteUpdate(data) {
+    const { pollId, votes } = data;
+    polls[pollId].votes = votes;
+    updatePollResults(pollId);
+}
+
+function updatePollResults(pollId) {
+    const poll = polls[pollId];
+    const pollElement = document.querySelector(`.poll-message:has(#vote-button-${pollId})`);
+    const resultsElement = pollElement.querySelector('.poll-results');
+
+    if (!poll.votes[username] && poll.creator !== username) {
+        resultsElement.textContent = 'Vote to see results';
+        return;
+    }
+
+    let totalVotes = Object.values(poll.votes).flat().length;
+    let resultHtml = `<h4>Results (${totalVotes} vote${totalVotes !== 1 ? 's' : ''}):</h4>`;
+
+    poll.options.forEach((option, index) => {
+        let optionVotes = Object.values(poll.votes).flat().filter(vote => vote === index).length;
+        let percentage = totalVotes > 0 ? (optionVotes / totalVotes * 100).toFixed(1) : 0;
+        resultHtml += `
+            <div class="poll-result-item">
+                <div class="poll-result-bar" style="width: ${percentage}%;"></div>
+                <div class="poll-result-text">${option}: ${optionVotes} (${percentage}%)</div>
+            </div>
+        `;
+    });
+
+    resultsElement.innerHTML = resultHtml;
+}
 
 init();

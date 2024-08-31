@@ -60,8 +60,30 @@
                 <i class="fas fa-file-upload"></i>
             </label>
             <input type="file" id="file-upload" accept="*/*" style="display: none;">
+            <button type="button" id="create-poll-btn" class="action-btn"><i class="fas fa-poll"></i></button>
             <button type="submit"><i class="fas fa-paper-plane"></i> Send</button>
         </form>
+    </div>
+
+    <div id="poll-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Create a Poll</h2>
+            <form id="poll-form">
+                <input type="text" id="poll-title" placeholder="Poll Title" required>
+                <textarea id="poll-description" placeholder="Poll Description"></textarea>
+                <div id="poll-options">
+                    <input type="text" class="poll-option" placeholder="Option 1" required>
+                    <input type="text" class="poll-option" placeholder="Option 2" required>
+                </div>
+                <button type="button" id="add-option-btn">Add Option</button>
+                <div>
+                    <input type="checkbox" id="multiple-choice">
+                    <label for="multiple-choice">Allow multiple choices</label>
+                </div>
+                <button type="submit">Create Poll</button>
+            </form>
+        </div>
     </div>
     <script>
         const roomId = "<%= roomId %>";

@@ -104,7 +104,6 @@ app.post('/join-room', (req, res) => {
   }
 });
 
-// Modify the GET /api/messages/:roomId route
 app.get('/api/messages/:roomId', (req, res) => {
   const roomId = req.params.roomId;
   const page = parseInt(req.query.page) || 0;
@@ -116,13 +115,19 @@ app.get('/api/messages/:roomId', (req, res) => {
           const startIndex = room.messages.length - (page + 1) * pageSize;
           const endIndex = startIndex + pageSize - 1;
           const messages = room.messages.slice(Math.max(0, startIndex), endIndex);
+          
+          // Include polls in the response
+          const polls = room.polls || {};
+          
           res.json({
               messages: messages.reverse(),
+              polls: polls,
               hasMore: startIndex > 0
           });
       } else {
           res.json({
               messages: [],
+              polls: {},
               hasMore: false
           });
       }
@@ -389,6 +394,32 @@ wss.on('connection', (ws, req) => {
           }));
         }
         break;
+      case 'poll':
+          if (chatrooms.has(roomId)) {
+              const room = chatrooms.get(roomId);
+              room.polls = room.polls || {};
+              room.polls[data.pollData.id] = data.pollData;
+              broadcastToRoom(roomId, {
+                  type: 'poll',
+                  pollData: data.pollData
+              });
+          }
+          break;
+
+      case 'vote':
+            if (chatrooms.has(roomId)) {
+                const room = chatrooms.get(roomId);
+                const poll = room.polls[data.pollId];
+                if (poll) {
+                    poll.votes[username] = data.votes;
+                    broadcastToRoom(roomId, {
+                        type: 'voteUpdate',
+                        pollId: data.pollId,
+                        votes: poll.votes
+                    });
+                }
+            }
+            break;
     }
   });
 

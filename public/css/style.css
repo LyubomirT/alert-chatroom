@@ -730,3 +730,318 @@ button:hover {
         height: 160px;
     }
 }
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--background-primary);
+    padding: 30px;
+    border: 1px solid var(--border-light);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.close {
+    color: var(--text-tertiary);
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+/* Poll form styles */
+#poll-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#poll-form input[type="text"],
+#poll-form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#poll-options {
+    margin-bottom: 15px;
+}
+
+#add-option-btn {
+    align-self: flex-start;
+    margin-bottom: 15px;
+}
+
+/* Poll message styles */
+.poll-message {
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.poll-title {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    color: var(--primary-color);
+}
+
+.poll-description {
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+}
+
+.poll-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Poll option styles */
+.poll-option {
+    background-color: var(--background-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    padding: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.poll-option:hover {
+    background-color: var(--background-light);
+}
+
+.poll-option.selected {
+    background-color: var(--primary-color);
+    color: var(--text-primary);
+}
+
+/* Poll form styles */
+.poll-option-input {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.poll-option-input input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.remove-option-btn {
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+.remove-option-btn:hover {
+    background-color: var(--background-light);
+    color: var(--text-secondary);
+}
+
+.poll-results {
+    margin-top: 20px;
+}
+
+.poll-result-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.poll-result-bar {
+    height: 20px;
+    background-color: var(--primary-color);
+    margin-right: 10px;
+    border-radius: 10px;
+}
+
+.poll-result-text {
+    flex-grow: 1;
+}
+
+#vote-button {
+    margin-top: 15px;
+    align-self: flex-start;
+}
+
+/* Create poll btn styles (same as upload btn) */
+.create-poll-btn {
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    max-width: 20px;
+}
+
+.create-poll-btn:hover {
+    background-color: var(--hover-primary);
+}
+
+/* New styles for create poll button and common styles for both buttons */
+.action-btn {
+    cursor: pointer;
+    padding: 10px;
+    background-color: var(--primary-color);
+    color: var(--text-primary);
+    border: none;
+    margin-right: 10px;
+    font-size: 1em;
+}
+
+.action-btn:hover {
+    background-color: var(--hover-primary);
+}
+
+/* Adjust the message form layout */
+#message-form {
+    display: flex;
+    padding: 20px;
+    background-color: var(--background-primary);
+    border-top: 1px solid var(--border-form);
+    align-items: center; /* Changed from flex-end to center */
+}
+
+/* Ensure all buttons in the form have consistent height */
+#message-form button,
+#message-form .file-upload-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Adjust the textarea to align with buttons */
+#message-input {
+    margin-bottom: 0;
+    align-self: stretch; /* This will make the textarea stretch to match the height of the buttons */
+}
+
+/* Modal styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: var(--background-primary);
+    padding: 40px;
+    border: 1px solid var(--border-light);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.close {
+    color: var(--text-tertiary);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 10px;
+}
+
+/* Poll form styles */
+#poll-form {
+    display: flex;
+    flex-direction: column;
+}
+
+#poll-form input[type="text"],
+#poll-form textarea {
+    width: 90%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+#poll-options {
+    margin-bottom: 20px;
+}
+
+.poll-option-input {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.poll-option-input input {
+    flex-grow: 1;
+    margin-right: 15px;
+    padding: 12px;
+}
+
+#add-option-btn {
+    align-self: flex-start;
+    margin-bottom: 20px;
+    padding: 10px 15px;
+}
+
+/* Checkbox styling */
+#poll-form .checkbox-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#poll-form .checkbox-container input[type="checkbox"] {
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* Submit button styling */
+#poll-form button[type="submit"] {
+    align-self: flex-start;
+    padding: 12px 20px;
+    font-size: 16px;
+    margin-top: 20px;
+}
